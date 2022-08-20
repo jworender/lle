@@ -11,25 +11,25 @@ library(dplyr)
 
 
 N          <- 100  # the number of RANDOM variables to generate
-S          <- 40   # the number of superposed variables to generate
+S          <- 5   # the number of superposed variables to generate
               # relevant variables vector (length must be smaller than "S" - not 5)
-R          <- c(5, 8, 9, 10, 13, 25, 30)  
+R          <- c(1, 2, 4, 5)  
               # whether the high & above or low & below or in-between thresholds
 #               area is used
-AB         <- c('a', 'a', 'b', 'b', 'a', 'b', 'n')
+AB         <- c('a', 'a', 'b', 'b')
               # each group will be elements of an "or" clause, whereas each
 #               element within the group will be considered an "and" clause
 #               (the groups must be sequentially numbered from one)
-gp         <- c(1, 1, 1, 1, 1, 1, 1)
+gp         <- c(1, 1, 2, 2)
 n          <- 40   # setting the number of cycles to generate
 H          <- 10   # number of historical time steps to use for prediction
 rseed      <- 1234 # the random seed for repeatability
 train_fr   <- 0.7  # the fraction of the dataset used for the training portion of the data
-disp       <- c(0, 0, 0, 0, 10, 0, 0, 10, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 3, 0, 0, 0,  0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) 
-thresh_a   <- .3   # threshold above which the result contributes to a TRUE
+              # the time displacements for the variables
+disp       <- c(5, 10, 0, 3, 8)
+thresh_a   <- .7   # threshold above which the result contributes to a TRUE
 #                    example for 'a' curves
-thresh_b   <- .65   # threshold below which the result contributes to a TRUE
+thresh_b   <- .5   # threshold below which the result contributes to a TRUE
 #                    example for 'b' curves
                    # (as a fraction of the max)
                    # NOTE:  For the narrow range 'n', results that lie within
@@ -90,8 +90,7 @@ for (j in 1:S) {
 # displacements vector so that the original time sequence can remain untouched
 SS <- SIG_SUPPOS
 for (r in R) 
-  if (disp[r] > 0)
-    SS[[r]] <- c(rep(0, disp[r]), SS[[r]][1:(length(SS[[r]])-disp[r])])
+  if (disp[r] > 0) SS[[r]] <- c(rep(0, disp[r]), SS[[r]][1:(length(SS[[r]])-disp[r])])
 
 # superposing the relevant variables
 posg = list() # the gth element of the "or" clause
@@ -149,10 +148,8 @@ for (i in 1:S) {
   xvals  <- 0:(length(SIG_SUPPOS[[i]]) - 1)
   plot(xvals, SIG_SUPPOS[[i]], xlab = "Time Step", ylab = "Variable Value",
        main = sprintf("Curve #%d (%s)", i, srelev), type = "l", col = "black",
-       ylim = c(mean(SIG_SUPPOS[[i]]) - 0.6*(max(abs(SIG_SUPPOS[[i]])) -
-                                               min(abs(SIG_SUPPOS[[i]]))), 
-                mean(SIG_SUPPOS[[i]]) + 0.6*(max(abs(SIG_SUPPOS[[i]])) -
-                                               min(abs(SIG_SUPPOS[[i]])))))
+       ylim = c(mean(SIG_SUPPOS[[i]]) - 0.6*(max(abs(SIG_SUPPOS[[i]])) - min(abs(SIG_SUPPOS[[i]]))), 
+                mean(SIG_SUPPOS[[i]]) + 0.6*(max(abs(SIG_SUPPOS[[i]])) - min(abs(SIG_SUPPOS[[i]])))))
 
   points(xvals[time_steps], SIG_SUPPOS[[i]][time_steps], col = "red", pch = 20)
 }
@@ -195,17 +192,9 @@ neg_examples$X    <- neg_indices
 dset   <- rbind(pos_examples, neg_examples)
 dset   <- arrange(dset, X)
 
-# removing case 5 data
-cnames <- colnames(dset)
-cnames <- cnames[-grep("^V5TM",cnames)]
-cnames <- cnames[-grep("^V10TM",cnames)]
-dset   <- dset[,cnames]
-
-
-curve_data <- list(relev = R, thresh_a = thresh_a, thresh_b = thresh_b,
-                   disp = disp, SIG_SIN_RND = SIG_SIN_RND,
-                   SIG_SUPPOS = SIG_SUPPOS, time_steps = time_steps,
-                   dset = dset)
+curve_data <- list(relev = R, thresh_a = thresh_a, thresh_b = thresh_b, disp = disp,
+                   SIG_SIN_RND = SIG_SIN_RND, SIG_SUPPOS = SIG_SUPPOS,
+                   time_steps = time_steps, dset = dset)
 
 dset_train <- dset[sample(dim(dset)[1], train_fr*dim(dset)[1]),]
 dset_test  <- dset[!(dset$X %in% dset_train$X),]
@@ -217,8 +206,6 @@ for (i in 1:S) {
   all_limits[[i]] <- limlist
   names(all_limits[[i]]) <- paste0(paste0("V",i,"TM"),0:H)
 
-  if (i==5) next  
-  if (i==10) next  
   prefix <- paste0("V",i,"TM")
   for (j in 0:H)
     all_limits[[i]][[j+1]] <- c(min(dset_train[,paste0(prefix,j)][dset_train$INDC]),
@@ -229,7 +216,7 @@ for (i in 1:S) {
     all_limits[[i]][in_this_list] <- limits[in_this_list]
   }
 }
-names(all_limits) <- paste0("V",c(1:4,6:9,11:S),"TM")
+names(all_limits) <- paste0("V",c(1:S),"TM")
 
 # CLEAN-UP
 # (if you wish to inspect the intermediate variables, comment out this block)
@@ -239,7 +226,4 @@ rm(list=c("all_limits", "curve_data", "limits", "limlist", "neg_examples",
           "SIG_SUPPOS", "SS", "AB", "attrib", "disp", "g", "gp", "H", "i",
           "in_this_list", "j", "lnames", "n", "N", "neg_indices", "nfun",
           "nmin", "pos", "pos_indices", "prefix", "r", "R", "rseed", "S",
-          "srelev", "thresh_a", "thresh_b", "time_steps", "train_fr", "xvals",
-          "cnames"))
-
-
+          "srelev", "thresh_a", "thresh_b", "time_steps", "train_fr", "xvals"))
