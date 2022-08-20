@@ -8,6 +8,17 @@ output:
 ---
 
 
+## Introduction
+
+This document was created by running the "Case_1_markdown.Rmd" file in RStudio.
+It utilizes the script files "functions.R" and "rectify.R" within the "Code"
+directory in this repository, which are used to define the functions that are
+called below.  This document will create all of the synthetic data, fit the data
+to a model, and then display the results.  Anyone interested is invited to fork
+the repository and change the settings for the purposes of self-demonstration.
+The verbiage here reflects the text in the paper, but in some cases figures or
+examples that are present here were cut in that document to stay within a ten
+page limit.
 
 ## Generate the Data
 
@@ -24,6 +35,10 @@ others are added to obfuscate the data and make the task of picking out the
 relevant features and time steps harder.  The red markers on the curves show
 the time steps for which all of the criteria for an event are met.  Each time
 step generates an example which includes the data from the ten time steps before.
+
+The data generation script will produce a plot of the entire data set for each
+feature over each time step.  There are a large number of these plots, but the
+process for generation and the explanation of the results is located below.
 
 ![](Case_1_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-5.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-6.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-7.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-8.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-9.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-10.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-11.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-12.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-13.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-14.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-15.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-16.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-17.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-18.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-19.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-20.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-21.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-22.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-23.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-24.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-25.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-26.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-27.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-28.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-29.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-30.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-31.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-32.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-33.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-34.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-35.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-36.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-37.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-38.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-39.png)<!-- -->![](Case_1_markdown_files/figure-html/generate_data-40.png)<!-- -->
 

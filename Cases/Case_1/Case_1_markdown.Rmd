@@ -14,6 +14,17 @@ library(dplyr, quietly = TRUE)
 
 
 ```
+## Introduction
+
+This document was created by running the "Case_1_markdown.Rmd" file in RStudio.
+It utilizes the script files "functions.R" and "rectify.R" within the "Code"
+directory in this repository, which are used to define the functions that are
+called below.  This document will create all of the synthetic data, fit the data
+to a model, and then display the results.  Anyone interested is invited to fork
+the repository and change the settings for the purposes of self-demonstration.
+The verbiage here reflects the text in the paper, but in some cases figures or
+examples that are present here were cut in that document to stay within a ten
+page limit.
 
 ## Generate the Data
 
@@ -30,6 +41,10 @@ others are added to obfuscate the data and make the task of picking out the
 relevant features and time steps harder.  The red markers on the curves show
 the time steps for which all of the criteria for an event are met.  Each time
 step generates an example which includes the data from the ten time steps before.
+
+The data generation script will produce a plot of the entire data set for each
+feature over each time step.  There are a large number of these plots, but the
+process for generation and the explanation of the results is located below.
 
 ```{r generate_data, echo=FALSE}
 source("build_case_1_data.R")
