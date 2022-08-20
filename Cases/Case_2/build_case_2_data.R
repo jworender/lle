@@ -196,29 +196,43 @@ dset   <- rbind(pos_examples, neg_examples)
 dset   <- arrange(dset, X)
 
 # removing case 5 data
-cnames <- colnames(dset)
-cnames <- cnames[-grep("^V5TM",cnames)]
-cnames <- cnames[-grep("^V10TM",cnames)]
-dset   <- dset[,cnames]
+cnames    <- colnames(dset)
+cnames    <- cnames[-grep("^V5TM",cnames)]
+dset_m5   <- dset[,cnames]
+cnames    <- cnames[-grep("^V10TM",cnames)]
+dset_m510 <- dset[,cnames]
 
+# curve_data <- list(relev = R, thresh_a = thresh_a, thresh_b = thresh_b,
+#                    disp = disp, SIG_SIN_RND = SIG_SIN_RND,
+#                    SIG_SUPPOS = SIG_SUPPOS, time_steps = time_steps,
+#                    dset = dset)
 
-curve_data <- list(relev = R, thresh_a = thresh_a, thresh_b = thresh_b,
-                   disp = disp, SIG_SIN_RND = SIG_SIN_RND,
-                   SIG_SUPPOS = SIG_SUPPOS, time_steps = time_steps,
-                   dset = dset)
+# keeping the sample of examples the same between all three sets of train/test
+train_samp      <- sample(dim(dset)[1], train_fr*dim(dset)[1])
+test_samp       <- which(!(dset$X %in% train_samp))
 
-dset_train <- dset[sample(dim(dset)[1], train_fr*dim(dset)[1]),]
-dset_test  <- dset[!(dset$X %in% dset_train$X),]
+dset_train      <- dset[train_samp,]
+dset_test       <- dset[test_samp,]
+
+dset_m5_train   <- dset_m5[train_samp,]
+dset_m5_test    <- dset_m5[test_samp,]
+
+dset_m510_train <- dset_m510[train_samp,]
+dset_m510_test  <- dset_m510[test_samp,]
 
 limlist    <- list()
 for (i in 0:H) limlist[[i+1]] <- c(0,0)
-all_limits <- list()
+all_limits      <- list()
+all_limits_m5   <- list()
+all_limits_m510 <- list()
 for (i in 1:S) {
-  all_limits[[i]] <- limlist
-  names(all_limits[[i]]) <- paste0(paste0("V",i,"TM"),0:H)
-
-  if (i==5) next  
-  if (i==10) next  
+  all_limits[[i]]      <- limlist
+  all_limits_m5[[i]]   <- limlist
+  all_limits_m510[[i]] <- limlist
+  names(all_limits[[i]])      <- paste0(paste0("V",i,"TM"),0:H)
+  names(all_limits_m5[[i]])   <- paste0(paste0("V",i,"TM"),0:H)
+  names(all_limits_m510[[i]]) <- paste0(paste0("V",i,"TM"),0:H)
+  
   prefix <- paste0("V",i,"TM")
   for (j in 0:H)
     all_limits[[i]][[j+1]] <- c(min(dset_train[,paste0(prefix,j)][dset_train$INDC]),
@@ -228,18 +242,44 @@ for (i in 1:S) {
   if (length(in_this_list) > 0) {
     all_limits[[i]][in_this_list] <- limits[in_this_list]
   }
+  
+  if (i!=5) {
+    prefix <- paste0("V",i,"TM")
+    for (j in 0:H)
+      all_limits_m5[[i]][[j+1]] <- c(min(dset_m5_train[,paste0(prefix,j)][dset_m5_train$INDC]),
+                                     max(dset_m5_train[,paste0(prefix,j)][dset_m5_train$INDC]))
+  
+    in_this_list <- names(limits)[names(limits) %in% names(all_limits_m5[[i]])]
+    if (length(in_this_list) > 0) {
+      all_limits_m5[[i]][in_this_list] <- limits[in_this_list]
+    }
+  }
+  
+  if ((i!=10) & (i!=5)) {  
+    prefix <- paste0("V",i,"TM")
+    for (j in 0:H)
+      all_limits_m510[[i]][[j+1]] <- c(min(dset_m510_train[,paste0(prefix,j)][dset_m510_train$INDC]),
+                                       max(dset_m510_train[,paste0(prefix,j)][dset_m510_train$INDC]))
+  
+    in_this_list <- names(limits)[names(limits) %in% names(all_limits_m510[[i]])]
+    if (length(in_this_list) > 0) {
+      all_limits_m510[[i]][in_this_list] <- limits[in_this_list]
+    }
+  }
 }
-names(all_limits) <- paste0("V",c(1:4,6:9,11:S),"TM")
+names(all_limits)      <- paste0("V",c(1:S),"TM")
+names(all_limits_m5)   <- paste0("V",c(1:4,6:S),"TM")
+names(all_limits_m510) <- paste0("V",c(1:4,6:9,11:S),"TM")
 
 # CLEAN-UP
 # (if you wish to inspect the intermediate variables, comment out this block)
 
-rm(list=c("all_limits", "curve_data", "limits", "limlist", "neg_examples",
-          "neg_hist", "pos_examples", "pos_hist", "posg", "SIG_SIN_RND",
-          "SIG_SUPPOS", "SS", "AB", "attrib", "disp", "g", "gp", "H", "i",
-          "in_this_list", "j", "lnames", "n", "N", "neg_indices", "nfun",
-          "nmin", "pos", "pos_indices", "prefix", "r", "R", "rseed", "S",
-          "srelev", "thresh_a", "thresh_b", "time_steps", "train_fr", "xvals",
-          "cnames"))
+rm(list=c("all_limits", "all_limits_m5", "all_limits_m510",
+          "limits", "limlist", "neg_examples", "neg_hist", "pos_examples",
+          "pos_hist", "posg", "SIG_SIN_RND", "SIG_SUPPOS", "SS", "AB", "attrib",
+          "disp", "g", "gp", "H", "i", "in_this_list", "j", "lnames", "n", "N",
+          "neg_indices", "nfun", "nmin", "pos", "pos_indices", "prefix", "r",
+          "R", "rseed", "S", "srelev", "thresh_a", "thresh_b", "time_steps",
+          "train_fr", "xvals", "cnames"))
 
 
