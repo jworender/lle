@@ -113,41 +113,28 @@ the relevant variables.
 
 
 
+## Plot the Results
+
+The first case is a longitudinal data problem in which the following specific characteristics apply:
+
+1.	7 relevant variables are intermixed with 33 non-relevant variables, all 7 of which must be within their relevant ranges to trigger an event.
+2.	Each variable is tracked over 10 previous time-steps as well as the current time step (time step zero) and as a consequence generates 11 features per variable, for a total of 440 features per example in the flattened data.
+3.	There is a single time-step/feature relevant for each variable.  As a result, the ratio of non-relevant to relevant features is approximately 63:1.  The time step features are meant to describe the delayed effect once the variable enters its critical range.
+4.	There are 3437 examples in the training set, 530 of which are positive examples.
+5.	There are 1474 examples in the test set, 232 of which are positive examples.  All test set examples are unseen until tested against the trained model and should be considered novel data.
 
 
-```r
-message("Detecting groups...")
-```
 
 ```
 ## Detecting groups...
-```
-
-```r
-dstruct     <- organize(dset_train)
-dset_groups <- dstruct$groups
-message("  Done.")
 ```
 
 ```
 ##   Done.
 ```
 
-```r
-# This code block uses a specialized routine called "modelfit" which is a
-# generalized routine that fits data to a specified model type.  It was made
-# to simplify the interface and make the code more succinct.
-message("Fitting Models...")
-```
-
 ```
 ## Fitting Models...
-```
-
-```r
-# SQ means square rectified, which is a LASSO run on transformed data
-model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
-                params = list(sdfilter = NULL))
 ```
 
 ```
@@ -170,26 +157,17 @@ model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
 ## Linking to: OpenSSL 1.1.1k  25 Mar 2021
 ```
 
-```r
-# LS just means LASSO
-model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
-message("  Done.")
-```
-
 ```
 ##   Done.
 ```
+The next plot, which shows the results of the model fit plotted against the
+training and then the test set, tells a very straightforward story.  The
+resultant model describes the data extremely well when the data is transformed
+into a binary format using the previous procedure.  
 
-```r
-message("Plotting examples...")
-```
 
 ```
-## Plotting examples...
-```
-
-```r
-plot(model_1, title = "Case #1 Training Set", h=.5)
+## Plotting transformed data examples...
 ```
 
 ```
@@ -203,97 +181,50 @@ plot(model_1, title = "Case #1 Training Set", h=.5)
 ##     combine
 ```
 
-![](Case_1_markdown_files/figure-html/plots-1.png)<!-- -->
-
-```r
-plot(model_1, title = "Case #1 Test Set", data = dset_test, h=.5)
-```
-
-![](Case_1_markdown_files/figure-html/plots-2.png)<!-- -->
-
-```r
-plot(model_2, title = "Case #1 Training Set (no transformation)", h=.5)
-```
-
-![](Case_1_markdown_files/figure-html/plots-3.png)<!-- -->
-
-```r
-plot(model_2, title = "Case #1 Test Set (no transformation)",
-     data = dset_test, h=.5)
-```
-
-![](Case_1_markdown_files/figure-html/plots-4.png)<!-- -->
-
-```r
-message("  Done.")
-```
+![](Case_1_markdown_files/figure-html/transformed_data_plots-1.png)<!-- -->![](Case_1_markdown_files/figure-html/transformed_data_plots-2.png)<!-- -->
 
 ```
 ##   Done.
 ```
 
-```r
-TRANS   <- 0.2
-BARHT   <- 7.5
-beta1   <- model_1$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
+If the transformation is not used, the next plot shows the resultant LASSO fit
+on the un-transformed data.  Without the transformation, the LASSO fit severely
+underperforms with respect to the fit performed with the transformed data. In
+addition, the computational power required to calculate the fit on the un-
+transformed data is significantly greater.  The LASSO fit on the un-transformed
+data took nearly double (1.83x) the amount of time required to both transform
+the data and then perform the fit in the transformed data case
+(single-threaded). Once the data is transformed, the remainder of the
+calculations are nearly all integer math until the final coefficients are
+calculated. This could prove a significant advantage when applied in a high
+performance computing (HPC) setting.
 
-cols[grep("V5TM10", names(beta1))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V5TM10", names(beta1))]  <- BARHT
-cols[grep("V8TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta1))]  <- BARHT
-cols[grep("V9TM1", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta1))]   <- BARHT
-cols[grep("V10TM0", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V10TM0", names(beta1))]  <- BARHT
-cols[grep("V13TM2", names(beta1))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta1))]  <- BARHT
-cols[grep("V25TM3", names(beta1))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta1))]  <- BARHT
-cols[grep("V30TM7", names(beta1))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta1))]  <- BARHT
 
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-        axes = FALSE)
+```
+## Plotting un-transformed data examples...
 ```
 
-![](Case_1_markdown_files/figure-html/plots-5.png)<!-- -->
+![](Case_1_markdown_files/figure-html/untransformed_data_plots-1.png)<!-- -->![](Case_1_markdown_files/figure-html/untransformed_data_plots-2.png)<!-- -->
 
-```r
-BARHT   <- 30
-beta2   <- model_2$model$beta[,]
-markers <- rep(0,length(beta2))
-cols    <- rep(rgb(0,0,0,0), length(beta2))
-  
-cols[grep("V5TM10", names(beta2))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V5TM10", names(beta2))]  <- BARHT
-cols[grep("V8TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta2))]  <- BARHT
-cols[grep("V9TM1", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta2))]   <- BARHT
-cols[grep("V10TM0", names(beta2))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V10TM0", names(beta2))]  <- BARHT
-cols[grep("V13TM2", names(beta2))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta2))]  <- BARHT
-cols[grep("V25TM3", names(beta2))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta2))]  <- BARHT
-cols[grep("V30TM7", names(beta2))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta2))]  <- BARHT
-  
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta2, border = "blue", col = "blue", ylim = c(-30, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-barplot(markers, border = cols, col = cols, ylim = c(-30, BARHT),
-        axes = FALSE)
+```
+##   Done.
 ```
 
-![](Case_1_markdown_files/figure-html/plots-6.png)<!-- -->
+The advantages of the transformation procedure go beyond the accuracy of the
+results and the reduced computational power.  The precision with which it can
+pinpoint the precise features required for the sparse solution means that in a
+longitudinal data scenario such as this, both the variable and the specific lag
+for each variable can potentially be derived.  The bar plot below shows the
+coefficients calculated for the LASSO applied to the transformed data.  The
+sparseness of the solution is almost ideal; there are only five spurious returns
+and three of those were directly adjacent to the correct return.
+
+![](Case_1_markdown_files/figure-html/transformed_data_barplot-1.png)<!-- -->
+
+This can be contrasted with the LASSO solution on the un-transformed data in
+the following plot.  The scattershot arrangement of the coefficient magnitudes
+clearly reveals why the solution shown above for the un-transformed data so
+greatly underperforms.
+
+![](Case_1_markdown_files/figure-html/untransformed_data_barplot-1.png)<!-- -->
 

@@ -129,7 +129,16 @@ source("../../Code/rectify.R")
 
 ## Plot the Results
 
-```{r fit_models}
+The first case is a longitudinal data problem in which the following specific characteristics apply:
+
+1.	7 relevant variables are intermixed with 33 non-relevant variables, all 7 of which must be within their relevant ranges to trigger an event.
+2.	Each variable is tracked over 10 previous time-steps as well as the current time step (time step zero) and as a consequence generates 11 features per variable, for a total of 440 features per example in the flattened data.
+3.	There is a single time-step/feature relevant for each variable.  As a result, the ratio of non-relevant to relevant features is approximately 63:1.  The time step features are meant to describe the delayed effect once the variable enters its critical range.
+4.	There are 3437 examples in the training set, 530 of which are positive examples.
+5.	There are 1474 examples in the test set, 232 of which are positive examples.  All test set examples are unseen until tested against the trained model and should be considered novel data.
+
+
+```{r fit_models, echo=FALSE}
 message("Detecting groups...")
 dstruct     <- organize(dset_train)
 dset_groups <- dstruct$groups
@@ -146,15 +155,50 @@ model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
 model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
 message("  Done.")
 ```
-```{r plots}
-message("Plotting examples...")
-plot(model_1, title = "Case #1 Training Set", h=.5)
-plot(model_1, title = "Case #1 Test Set", data = dset_test, h=.5)
-plot(model_2, title = "Case #1 Training Set (no transformation)", h=.5)
-plot(model_2, title = "Case #1 Test Set (no transformation)",
-     data = dset_test, h=.5)
-message("  Done.")
+The next plot, which shows the results of the model fit plotted against the
+training and then the test set, tells a very straightforward story.  The
+resultant model describes the data extremely well when the data is transformed
+into a binary format using the previous procedure.  
 
+```{r transformed_data_plots, echo=FALSE}
+hpos <- 0.4
+message("Plotting transformed data examples...")
+plot(model_1, title = "Case #1 Training Set", h=.5, cx = hpos)
+plot(model_1, title = "Case #1 Test Set", data = dset_test, h=.5, cx = hpos)
+message("  Done.")
+```
+
+If the transformation is not used, the next plot shows the resultant LASSO fit
+on the un-transformed data.  Without the transformation, the LASSO fit severely
+underperforms with respect to the fit performed with the transformed data. In
+addition, the computational power required to calculate the fit on the un-
+transformed data is significantly greater.  The LASSO fit on the un-transformed
+data took nearly double (1.83x) the amount of time required to both transform
+the data and then perform the fit in the transformed data case
+(single-threaded). Once the data is transformed, the remainder of the
+calculations are nearly all integer math until the final coefficients are
+calculated. This could prove a significant advantage when applied in a high
+performance computing (HPC) setting.
+
+```{r untransformed_data_plots, echo=FALSE}
+message("Plotting un-transformed data examples...")
+plot(model_2, title = "Case #1 Training Set (no transformation)", h=.5,
+     cx = hpos)
+plot(model_2, title = "Case #1 Test Set (no transformation)",
+     data = dset_test, h=.5, cx = hpos)
+message("  Done.")
+```
+
+The advantages of the transformation procedure go beyond the accuracy of the
+results and the reduced computational power.  The precision with which it can
+pinpoint the precise features required for the sparse solution means that in a
+longitudinal data scenario such as this, both the variable and the specific lag
+for each variable can potentially be derived.  The bar plot below shows the
+coefficients calculated for the LASSO applied to the transformed data.  The
+sparseness of the solution is almost ideal; there are only five spurious returns
+and three of those were directly adjacent to the correct return.
+
+```{r transformed_data_barplot, echo=FALSE}
 TRANS   <- 0.2
 BARHT   <- 7.5
 beta1   <- model_1$model$beta[,]
@@ -181,9 +225,23 @@ barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
         xaxt = "n")
 
 par(new=TRUE)
-barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-        axes = FALSE)
+bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
+                 yaxt = "n", main = "Coefficient Magnitudes for Transformed Data Fit")
+cnames <- c("V5TM10", "V8TM10", "V9TM1", "V10TM0", "V13TM2", "V25TM3", "V30TM7")
+bplot_at <- NULL
+for (i in 1:length(cnames))
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
+bplot_labels <- rep(NA, length(beta1))
+bplot_labels[bplot_at] <- cnames
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+```
 
+This can be contrasted with the LASSO solution on the un-transformed data in
+the following plot.  The scattershot arrangement of the coefficient magnitudes
+clearly reveals why the solution shown above for the un-transformed data so
+greatly underperforms.
+
+```{r untransformed_data_barplot, echo=FALSE}
 BARHT   <- 30
 beta2   <- model_2$model$beta[,]
 markers <- rep(0,length(beta2))
@@ -209,8 +267,14 @@ barplot(beta2, border = "blue", col = "blue", ylim = c(-30, BARHT), las = 2,
         xaxt = "n")
 
 par(new=TRUE)
-barplot(markers, border = cols, col = cols, ylim = c(-30, BARHT),
-        axes = FALSE)
-
+bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
+                 yaxt = "n", main = "Coefficient Magnitudes for Un-Transformed Data Fit")
+cnames <- c("V5TM10", "V8TM10", "V9TM1", "V10TM0", "V13TM2", "V25TM3", "V30TM7")
+bplot_at <- NULL
+for (i in 1:length(cnames))
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
+bplot_labels <- rep(NA, length(beta1))
+bplot_labels[bplot_at] <- cnames
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 ```
 
