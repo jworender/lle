@@ -1,0 +1,188 @@
+---
+title: "LLE: Goose Bay Case Study"
+author: "Jason Orender"
+date: "2022-08-20"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr, quietly = TRUE)
+library(dplyr, quietly = TRUE)
+library(readr, quietly = TRUE)
+```
+## Introduction
+
+This document was created by running the "Goose_Bay_markdown.Rmd" file in
+RStudio. It utilizes the script files "functions.R" and "rectify.R" within the
+"Code" directory in this repository, which are used to define the functions that
+are called below.  This document reflects real world data, and walks through
+the process from reading in the raw data to displaying the plots for
+interpretation.
+
+## About the Data
+
+One thoroughly analyzed data set that is often used as an exemplar is the
+ionosphere data collected by a system in Goose Bay, Labrador, downloaded from
+the UCI data repository (<a href="http://archive.ics.uci.edu/ml/datasets/Ionosphere">UCI Data</a>). The original study was published in 1989 [<a href="https://www.jhuapl.edu/Content/techdigest/pdf/V10-N03/10-03-Sigillito_Class.pdf">33</a>] and has been subsequently used in at least 55 additional papers as a test set
+for machine learning algorithms.
+
+From the UCI page [<a href="http://archive.ics.uci.edu/ml/index.php">32</a>]:
+"This radar data was collected by a system in Goose Bay, Labrador. This system
+consists of a phased array of 16 high-frequency antennas with a total
+transmitted power on the order of 6.4 kilowatts. See the paper for more details.
+The targets were free electrons in the ionosphere. "Good" radar returns are
+those showing evidence of some type of structure in the ionosphere. "Bad"
+returns are those that do not; their signals pass through the ionosphere.
+
+Received signals were processed using an autocorrelation function whose
+arguments are the time of a pulse and the pulse number. There were 17 pulse
+numbers for the Goose Bay system. Instances in this databse are described by 2
+attributes per pulse number, corresponding to the complex values returned by the
+function resulting from the complex electromagnetic signal."
+
+```{r load_functions, echo=FALSE}
+# Loading the functions that will be used to process the data - these are
+# defined in a separate script file to allow re-use between markdown documents
+# as well as create a set of generalized code that might be useful to others.
+source("../../Code/functions.R")
+source("../../Code/rectify.R")
+```
+
+```{r load_data, echo=FALSE}
+message("Reading in the data file...")
+ionosphere_data <- data.frame(read_csv("ionosphere.data.csv", col_names = FALSE,
+                                       show_col_types = FALSE))
+# the data file did not have column names, so adding them
+cnames <- c(unlist(lapply(1:17, FUN = function(i)
+    { c(paste0("Pulse_", i, "_r"), paste0("Pulse_", i, "_i")) })), "class")
+colnames(ionosphere_data) <- cnames
+# trsnforming the response column into a logical vector
+ionosphere_data$class <- ionosphere_data$class == "g"
+ionosphere_data$X     <- 1:dim(ionosphere_data)[1]
+
+# setting the names of the response column and the excluded columns
+resp    <- "class"
+exclude <- c("X")
+
+# naming the distinct groups within the data
+ion_groups  <- list()
+ion_groups[['Pulse_r']] <- paste0("Pulse_", 1:17, "_r")
+ion_groups[['Pulse_i']] <- paste0("Pulse_", 1:17, "_i")
+
+# creating a character vector of all features
+feats               <- unlist(groups)
+
+message("  Done.")
+
+# splitting the training and testing data
+message("Splitting the data...")
+rseed       <- 2345 # using a random seed for repeatability
+train_split <- 0.67
+pos_balance <- 1.0
+neg_balance <- 1.0
+
+# the entire data set
+ion       <- ionosphere_data
+# splitting the positive and negative examples so that we can control how many
+# of each go into the training and testing sets, rather than leave that to
+# chance
+ion_pos   <- ionosphere_data[ionosphere_data$class,]
+ion_neg   <- ionosphere_data[!ionosphere_data$class,]
+
+# setting the seed
+set.seed(rseed)
+# taking a random sample of the positive and negative examples for the training
+# set
+ion_train <- rbind(ion_pos[sample(dim(ion_pos)[1], train_split*pos_balance*dim(ion_pos)[1]),],
+                   ion_neg[sample(dim(ion_neg)[1], train_split*neg_balance*dim(ion_neg)[1]),])
+# taking everything that's left and putting it in the testing set
+ion_test  <- rbind(ion_pos[!(ion_pos$X %in% ion_train$X),],
+                   ion_neg[!(ion_neg$X %in% ion_train$X),])
+message("  Done.")
+
+message("Transforming the data...")
+# identifying the apparent critical ranges and creating a binary classified
+# version of the data
+ion_sq_train <- rectify(data = ion_train, resp = resp, exclude = exclude,
+                         groups = ion_groups, dfilter = NULL, sdfilter = NULL)
+# using the apparent critical ranges gleaned from the training set to transform
+# the test set
+ion_sq_test <- rectify(data = ion_test, resp = resp, exclude = exclude,
+                        groups = ion_groups, limits = ion_sq_train$limits,
+                        sdfilter = NULL)
+message("  Done.")
+
+```
+
+## Studying the Goose Bay Data
+
+```{r fit_models, echo=FALSE}
+# This code block uses a specialized routine called "modelfit" which is a
+# generalized routine that fits data to a specified model type.  It was made
+# to simplify the interface and make the code more succinct.
+message("Fitting Models...")
+# This model is a little less clean than the synthetic data, so using a
+# standard deviation filter on the data.  In this case, sdfilter=3 means that
+# any data points more than 3 standard deviations from the mean are ignored. If
+# the data is normal, this is a reasonable expectation.  If the data is not
+# normal there is an alternative "dfilter" parameter that is a density filter
+# which computes the density curve and the theoretical threshold that would
+# represent the density curve if the data were uniformly distributed. Everything
+# that falls below that threshold is excluded.  The level of that threshold can
+# be adjusted by setting the value of dfilter to a factor other than 1.0.
+ion_sq_fit <- modelfit(data = ion_sq_train$data, exclude = exclude, resp = resp,
+                       dtype = "LS", groups = ion_groups,
+                       params = list(sdfilter=3))
+# Fitting the LASSO on the untransformed data
+ion_ls_fit <- modelfit(data = ion_train, dtype = "LS", exclude = exclude,
+                       resp = resp, groups = ion_groups)
+message("  Done.")
+```
+The LASSO with transformed data (shown immediately below) again exceeded the
+performance the LASSO with the original un-transformed data (shown below the
+figures for the transformed data) and nearly matched the neural network that was
+specifically tuned and used to analyze the data in the original paper.
+
+```{r transformed_data_plots, echo=FALSE}
+hpos <- 0.4
+plot(ion_sq_fit, title = "Goose Bay Training Set (transformed data)", h=.5,
+     cx = hpos)
+plot(ion_sq_fit, data = ion_sq_test$data, h=.5, cx = hpos,
+     title = "Goose Bay Testing Set (transformed data)")
+```
+
+```{r untransformed_data_plots, echo=FALSE}
+plot(ion_ls_fit, title = "Goose Bay Training Set (un-transformed data)", h=.5,
+     cx = hpos)
+plot(ion_ls_fit, data = ion_test, h=.5, cx = hpos,
+     title = "Goose Bay Testing Set (un-transformed data)")
+```
+
+Additionally, a sparse coefficient vector was returned (shown below), which
+clearly indicates which signals are important, along with the critical ranges of
+the important signals, which are arguably nearly as interesting as the model
+results alone.
+
+```{r transformed_data_barplot, echo=FALSE}
+beta1   <- ion_sq_fit$model$beta[,]
+markers <- rep(0,length(beta1))
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta1, border = "blue", col = "blue", las = 2)
+```
+
+The coefficient for the LASSO solution on the un-transformed data (see below),
+by contrast, shows no clear feature attribution.  The largest coefficient, in
+fact, seems to be one which as no clear connection to the solution at all.
+
+```{r untransformed_data_barplot, echo=FALSE}
+beta1   <- ion_ls_fit$model$beta[,]
+markers <- rep(0,length(beta1))
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta1, border = "blue", col = "blue", las = 2)
+```
+

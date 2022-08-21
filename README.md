@@ -114,7 +114,7 @@ some examples of these problem types as well as proposed solution methods.
 Case Study  | Type           | Transformed (TP/FP)  | Un-Transformed (TP/FP)  |
 :----------:|:--------------:|:--------------------:|:-----------------------:|
 #1          | Synthetic Data | 97.8% / 0.0%         | 85.3% / 2.1%            |
-#2          | Synthetic Data | 94.8% / 2.3%         | 81.0% / 2.3%            |
+#2          | Synthetic Data | 97.7% / 2.5%         | 82.8% / 2.4%            |
 #3          | Synthetic Data | 96.2% / 0.8%         | 71.4% / 6.5%            |
 GB          | Real Data Set  | 97.3% / 11.9%        | 93.3% / 23.8%           |
 
