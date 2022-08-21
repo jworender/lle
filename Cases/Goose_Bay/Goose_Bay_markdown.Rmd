@@ -73,7 +73,7 @@ ion_groups[['Pulse_r']] <- paste0("Pulse_", 1:17, "_r")
 ion_groups[['Pulse_i']] <- paste0("Pulse_", 1:17, "_i")
 
 # creating a character vector of all features
-feats               <- unlist(groups)
+feats               <- unlist(ion_groups)
 
 message("  Done.")
 
