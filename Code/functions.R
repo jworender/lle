@@ -1485,6 +1485,22 @@ setGeneric("%search%", function(x,y) {
   return(contains)
 })
 
+#' Increment operator
+#' @author Jason Orender
+setGeneric("%+=%", function(x, y) {
+  if (is.character(x) & is.character(y)) {
+    eval.parent(substitute(x<-paste0(x,y)))
+    ans <- paste0(x,y) }
+  else if (is.numeric(x) & is.numeric(y)) {
+    eval.parent(substitute(x<-x+y))
+    ans <- x+y }
+  else {
+    warning(paste0("May only use %+=% on character and numeric atomics. ",
+                   "Use %&=% for vectors and lists. Returning LHS."))
+    ans <- x
+  }
+  return(ans) })
+
 #' CONCATENATION operator concatenates two vectors or lists
 #' @author Jason Orender
 setGeneric("%&=%", function(x, y) {
