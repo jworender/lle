@@ -14,19 +14,19 @@ This document was created by running the "Case_1_markdown.Rmd" file in RStudio.
 It utilizes the script files "functions.R" and "rectify.R" within the "Code"
 directory in this repository, which are used to define the functions that are
 called below.  This document will create all of the synthetic data, fit the data
-to a model, and then display the results.  Anyone interested is invited to fork
-the repository and change the settings for the purposes of self-demonstration.
-The verbiage here reflects the text in the paper, but in some cases figures or
-examples that are present here were cut in that document to stay within a ten
-page limit.
+to a model, and then display the results.  Anyone interested is invited to clone
+or fork the repository and change the settings for the purposes of 
+self-demonstration. The verbiage here reflects the text in the paper, but in
+some cases figures or examples that are present here were cut in that document
+to stay within a ten page limit.
 
 ## Generate the Data
 
 The data generation script is in the file named "build_case_1_data.R".  It will
 generate three files: 1) dset, 2) dset_train, 3) dset_test.  The "dset" file is
-a consolidated data set, and "dset_train" and "dset_test" are mutually exclusive
-subsets of "dset".  This document can be run it as a notebook, bock by block, 
-or it can also be knitted into an html document if desired.
+a consolidated data set, and "dset_train" and "dset_test" files are mutually
+exclusive subsets of "dset".  This document can be run it as a notebook, bock by
+block, or it can also be knitted into an html document if desired.
 
 The "relevant" data is taken from curves 5, 8, 9, 10, 13, 25, and 30.  They are
 marked "RELEVANT" in the chart title.  The plots generated from the next code
@@ -175,7 +175,7 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 ##   Done.
 ```
-The next plot, which shows the results of the model fit plotted against the
+The next plots, which show the results of the model fit plotted against the
 training and then the test set, tells a very straightforward story.  The
 resultant model describes the data extremely well when the data is transformed
 into a binary format using the previous procedure.  

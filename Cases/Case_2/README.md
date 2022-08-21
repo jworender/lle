@@ -14,11 +14,11 @@ This document was created by running the "Case_2_markdown.Rmd" file in RStudio.
 It utilizes the script files "functions.R" and "rectify.R" within the "Code"
 directory in this repository, which are used to define the functions that are
 called below.  This document will create all of the synthetic data, fit the data
-to a model, and then display the results.  Anyone interested is invited to fork
-the repository and change the settings for the purposes of self-demonstration.
-The verbiage here reflects the text in the paper, but in some cases figures or
-examples that are present here were cut in that document to stay within a ten
-page limit.
+to a model, and then display the results.  Anyone interested is invited to clone
+or fork the repository and change the settings for the purposes of
+self-demonstration.  The verbiage here reflects the text in the paper, but in
+some cases figures or examples that are present here were cut in that document
+to stay within a ten page limit.
 
 ## Generate the Data
 
