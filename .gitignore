@@ -39,4 +39,4 @@ vignettes/*.pdf
 .Renviron
 
 # do not attempt to add html files to the repository
-/*.html
+*.html
