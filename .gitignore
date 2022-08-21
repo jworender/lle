@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 # do not attempt to add html files to the repository
 *.html
+
+# zip files used for local archiving - ignore those
+*.zip
