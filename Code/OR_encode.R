@@ -41,8 +41,8 @@ OR_encode <- function(sqr_data, feats = NULL, limits = NULL, stride = 10) {
     # relationship from the perspective of the *apparent* critical ranges
 
     if (is.null(feats)) {
-        LS_fit <- dfit(data = data, resp = resp, dtype = "LS", groups = groups,
-                       checkdata = FALSE)
+        LS_fit <- modelfit(data = data, resp = resp, dtype = "LS",
+                           groups = groups)
         feats  <- LS_fit$model$feats
     }
 
