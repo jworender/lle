@@ -59,7 +59,7 @@ ionosphere_data <- data.frame(read_csv("ionosphere.data.csv", col_names = FALSE,
 cnames <- c(unlist(lapply(1:17, FUN = function(i)
     { c(paste0("Pulse_", i, "_r"), paste0("Pulse_", i, "_i")) })), "class")
 colnames(ionosphere_data) <- cnames
-# trsnforming the response column into a logical vector
+# transforming the response column into a logical vector
 ionosphere_data$class <- ionosphere_data$class == "g"
 ionosphere_data$X     <- 1:dim(ionosphere_data)[1]
 
