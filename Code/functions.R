@@ -942,7 +942,7 @@ plot_frz <- function(frz, h = NULL, v = 0, title = NULL,
   else
     resp <- rep(FALSE, length(pred))
   
-  if (is.null(cols))  cols <- resp%?%L("red", "blue")
+  if (is.null(cols))  cols <- resp%?%L(rgb(1,0,0), rgb(0,0,1,0.2))
   
   par(mar = c(5, 5, 3, 3))
   plot(1:length(pred), pred, xlab = xlab, ylab = ylab, pch = 20,
