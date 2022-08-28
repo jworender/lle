@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-08-20"
+date: "2022-08-28"
 output: 
   html_document: 
     keep_md: yes
@@ -27,15 +27,19 @@ interpretation.
 One thoroughly analyzed data set that is often used as an exemplar is the
 ionosphere data collected by a system in Goose Bay, Labrador, downloaded from
 the UCI data repository (<a href="http://archive.ics.uci.edu/ml/datasets/Ionosphere">UCI Data</a>). The original study was published in 1989 [<a href="https://www.jhuapl.edu/Content/techdigest/pdf/V10-N03/10-03-Sigillito_Class.pdf">33</a>] and has been subsequently used in at least 55 additional papers as a test set
-for machine learning algorithms.
+for machine learning algorithms.  While this is not specifically longitudinal
+data, it shows how the technique can be adapted to other data with similar
+analysis impediments, and highlights an area that may be of particular interest:
+disambiguating sensor returns to determine which sensors are producing relevant
+data.
 
 From the UCI page [<a href="http://archive.ics.uci.edu/ml/index.php">32</a>]:
 "This radar data was collected by a system in Goose Bay, Labrador. This system
 consists of a phased array of 16 high-frequency antennas with a total
-transmitted power on the order of 6.4 kilowatts. See the paper for more details.
-The targets were free electrons in the ionosphere. "Good" radar returns are
-those showing evidence of some type of structure in the ionosphere. "Bad"
-returns are those that do not; their signals pass through the ionosphere.
+transmitted power on the order of 6.4 kilowatts. See the <a href="https://www.jhuapl.edu/Content/techdigest/pdf/V10-N03/10-03-Sigillito_Class.pdf">paper</a> for more details. The targets were free electrons in the
+ionosphere. "Good" radar returns are those showing evidence of some type of
+structure in the ionosphere. "Bad" returns are those that do not; their signals
+pass through the ionosphere.
 
 Received signals were processed using an autocorrelation function whose
 arguments are the time of a pulse and the pulse number. There were 17 pulse
