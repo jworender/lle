@@ -17,16 +17,16 @@ functions that are called below.  This document will create all of the synthetic
 data, fit the data to a model, and then display the results.  Anyone interested
 is invited to clone or fork the repository and change the settings for the
 purposes of self-demonstration. The verbiage here reflects the text in the
-paper, but in some cases figures or examples that are present here were cut in
-that document to stay within a ten page limit.
+paper, but in some cases figures or examples that are present here were cut out
+of that document in order to stay within a ten page limit.
 
 ## Generate the Data
 
 The data generation script is in the file named "build_case_3_data.R".  It will
-generate three files: 1) dset, 2) dset_train, 3) dset_test.  The "dset" file is
-a consolidated data set, and "dset_train" and "dset_test" files are mutually
-exclusive subsets of "dset".  This document can be run it as a notebook, bock by
-block, or it can also be knitted into an html document if desired.
+generate three files: 1) dset, 2) dset_train, and 3) dset_test.  The "dset" file
+is a consolidated data set, while "dset_train" and "dset_test" files are
+mutually exclusive subsets of "dset".  This document can be run as a notebook,
+block by block, or it can also be knitted into an html document if desired.
 
 The "relevant" data is taken from curves 5, 8, 9, 10, 13, 25, and 30.  They are
 marked "RELEVANT" in the chart title.  The plots generated from the next code

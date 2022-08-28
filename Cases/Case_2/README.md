@@ -17,8 +17,8 @@ called below.  This document will create all of the synthetic data, fit the data
 to a model, and then display the results.  Anyone interested is invited to clone
 or fork the repository and change the settings for the purposes of
 self-demonstration.  The verbiage here reflects the text in the paper, but in
-some cases figures or examples that are present here were cut in that document
-to stay within a ten page limit.
+some cases figures or examples that are present here were cut out of that
+document in order to stay within a ten page limit.
 
 ## Generate the Data
 
@@ -29,7 +29,7 @@ generate nine files: 1) dset, 2) dset_train, 3) dset_test, 4) dset_m5,
 "dset_train" and "dset_test" files are mutually exclusive subsets of the "dset"
 files.  The "m5" and "m510" qualifiers indicate that the data is missing curve
 #5 (m5 = "minus 5") or missing curves #5 and #10 (m510 = "minus 5 and 10"). This
-document can be run it as a notebook, bock by block, or it can also be knitted
+document can be run as a notebook, block by block, or it can also be knitted
 into an html document if desired.
 
 The "relevant" data is taken from curves 5, 8, 9, 10, 13, 25, and 30.  They are
