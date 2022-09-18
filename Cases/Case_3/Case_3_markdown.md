@@ -7,13 +7,7 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(stringr, quietly = TRUE)
-library(dplyr, quietly = TRUE)
 
-
-```
 ## Introduction
 
 This document was created by running the "Case_3_markdown.Rmd" file in RStudio.
@@ -54,9 +48,7 @@ In order for this markdown to work correctly as written, the relevant curves
 would need to remain the same, but as many non-relevant curves as is desired can
 be added in without changing the details of the code.
 
-```{r generate_data, echo=FALSE}
-source("build_case_3_data.R")
-```
+![](Case_3_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-5.png)<!-- -->
 
 ## The data generation process
 
@@ -142,14 +134,7 @@ logical OR and logical AND will be generated in an identical way up to step 6.
 Step 6 will be modified accordingly to generate the desired relationships among
 the relevant variables.
 
-```{r load_functions, echo=FALSE}
-# Loading the functions that will be used to process the data - these are
-# defined in a separate script file to allow re-use between markdown documents
-# as well as create a set of generalized code that might be useful to others.
-source("../../Code/functions.R")
-source("../../Code/rectify.R")
-source("../../Code/collapse_limits.R")
-```
+
 
 ## Plot the Results
 
@@ -164,23 +149,45 @@ determined ensures that a logical AND and a logical OR relationship appear
 identical.  If a logical OR relationship exists, the training set exhibits the
 distinctive pattern shown in the following plots.
 
-```{r fit_models, echo=FALSE}
-message("Detecting groups...")
-dstruct     <- organize(dset_train)
-dset_groups <- dstruct$groups
-message("  Done.")
 
-# This code block uses a specialized routine called "modelfit" which is a
-# generalized routine that fits data to a specified model type.  It was made
-# to simplify the interface and make the code more succinct.
-message("Fitting Models...")
-# SQ means square rectified, which is a LASSO run on transformed data
-message("Fitting initial models...")
-model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
-                    params = list(sdfilter = NULL))
-# LS just means LASSO
-model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
-message("  Done.")
+```
+## Detecting groups...
+```
+
+```
+##   Done.
+```
+
+```
+## Fitting Models...
+```
+
+```
+## Fitting initial models...
+```
+
+```
+## Warning: package 'rlang' was built under R version 4.2.1
+```
+
+```
+## Loaded glmnet 4.1-4
+```
+
+```
+## Loading required package: openssl
+```
+
+```
+## Warning: package 'openssl' was built under R version 4.2.1
+```
+
+```
+## Linking to: OpenSSL 1.1.1k  25 Mar 2021
+```
+
+```
+##   Done.
 ```
 
 The perfect classification of the positive examples and poor classification
@@ -191,88 +198,45 @@ additional computational investment of creating the different versions of the
 features that might exist with different critical ranges and then fitting the
 new larger (about 2 x size) data set.  
 
-```{r transformed_data_plots, echo=FALSE}
-hpos <- 0.4
-message("Plotting transformed data examples...")
-plot(model_1, title = "Case #3 Training Set", h=.5, cx = hpos)
-plot(model_1, title = "Case #3 Test Set", data = dset_test, h=.5, cx = hpos)
-message("  Done.")
+
+```
+## Plotting transformed data examples...
+```
+
+```
+## 
+## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+![](Case_3_markdown_files/figure-html/transformed_data_plots-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots-2.png)<!-- -->
+
+```
+##   Done.
 ```
 
 Without calculating the extra versions, the un-transformed data actually
 outperforms the transformed data.
 
-```{r untransformed_data_plots, echo=FALSE}
-message("Plotting un-transformed data examples...")
-plot(model_2, title = "Case #3 Training Set (no transformation)", h=.5,
-     cx = hpos)
-plot(model_2, title = "Case #3 Test Set (no transformation)",
-     data = dset_test, h=.5, cx = hpos)
-message("  Done.")
+
+```
+## Plotting un-transformed data examples...
 ```
 
-```{r transformed_data_barplot, echo=FALSE}
-TRANS   <- 0.2
-BARHT   <- 15
-beta1   <- model_1$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
+![](Case_3_markdown_files/figure-html/untransformed_data_plots-1.png)<!-- -->![](Case_3_markdown_files/figure-html/untransformed_data_plots-2.png)<!-- -->
 
-cols[grep("V1TM5", names(beta1))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V1TM5", names(beta1))]  <- BARHT
-cols[grep("V2TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V2TM10", names(beta1))]  <- BARHT
-cols[grep("V4TM3", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V4TM3", names(beta1))]   <- BARHT
-cols[grep("V5TM8", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V5TM8", names(beta1))]  <- BARHT
-
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Transformed Data Fit")
-cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+```
+##   Done.
 ```
 
-```{r untransformed_data_barplot, echo=FALSE}
-BARHT   <- 2
-beta2   <- model_2$model$beta[,]
-markers <- rep(0,length(beta2))
-cols    <- rep(rgb(0,0,0,0), length(beta2))
-  
-cols[grep("V1TM5", names(beta2))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V1TM5", names(beta2))]  <- BARHT
-cols[grep("V2TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V2TM10", names(beta2))]  <- BARHT
-cols[grep("V4TM3", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V4TM3", names(beta2))]   <- BARHT
-cols[grep("V5TM8", names(beta2))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V5TM8", names(beta2))]  <- BARHT
-  
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta2, border = "blue", col = "blue", ylim = c(-BARHT, BARHT), las = 2,
-        xaxt = "n")
-  
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Un-Transformed Data Fit")
-cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
+![](Case_3_markdown_files/figure-html/transformed_data_barplot-1.png)<!-- -->
+
+![](Case_3_markdown_files/figure-html/untransformed_data_barplot-1.png)<!-- -->
 
 The computational advantage slightly reduced when the extra versions are
 calculated because the size of the new data set is essentially double that of
@@ -282,10 +246,13 @@ the small amount of extra computational energy to produce the much better
 results. The next plots show the success of the fit against the test set with
 the extra versions calculated.
 
-```{r fit_models_ev, echo=FALSE}
-message("Fitting a new model with additional feature versions that *might* exist...")
-model_1a <- collapse_limits(model_1)
-message("  Done.")
+
+```
+## Fitting a new model with additional feature versions that *might* exist...
+```
+
+```
+##   Done.
 ```
 
 It is clear from the performance of the new training set that there is a
@@ -301,13 +268,7 @@ when applied to the model created with the limited number of extra versions, and
 the performance advantage over the LASSO applied to the original continuous data
 is markedly large.
 
-```{r transformed_data_plots_ev, echo=FALSE}
-hpos <- 0.4
-plot(model_1a, title = "Case #3 Training Set (with extra versions)", h = 0.5,
-     cx = hpos)
-plot(model_1a, title = "Case #3 Test Set (with extra versions)",
-     data = dset_test, h = 0.5, cx = hpos)
-```
+![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->
 
 The LASSO results with the unmodified continuous data shown above indicate that
 while there is definitely a relationship, the difficulty in creating a model in
@@ -319,39 +280,6 @@ below).  In order to regain that interpretability, the features must be
 disentangled such that the logical OR relationships are removed, and each set of
 events on either side of the 'OR' operator modeled separately.
 
-```{r transformed_data_barplot_ev, echo=FALSE}
-TRANS   <- 0.2
-BARHT   <- 15
-beta1   <- model_1a$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
-
-cols[grep("V1TM5", names(beta1))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V1TM5", names(beta1))]  <- BARHT
-cols[grep("V2TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V2TM10", names(beta1))]  <- BARHT
-cols[grep("V4TM3", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V4TM3", names(beta1))]   <- BARHT
-cols[grep("V5TM8", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V5TM8", names(beta1))]  <- BARHT
-
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 axes = FALSE)
-cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
-bplot_at <- NULL
-labs     <- NULL
-for (i in 1:length(cnames)) {
-  labs <- c(labs, names(beta1)[grep(paste0("^",cnames[i],"_"),names(beta1))])
-  bplot_at <- c(bplot_at,grep(paste0("^",cnames[i],"_"),names(beta1)))
-}
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- labs
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
+![](Case_3_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
 
 

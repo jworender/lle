@@ -67,9 +67,6 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
     # the lim_return list will contain the limits associated with each feature
     # to be returned with the final data structure
     lim_return <- list()
-    # sensitivity is a list of sensitivity vectors for each group - this is only
-    # populated if new rectified parameters are being generated
-    sensitivity <- list()
     # the features of the data set will be reorganized according to the order
     # specified by the "groups" variable (either calculated by the degree of
     # correlation or supplied by the calling function)
@@ -133,17 +130,14 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
         # record this list of limits associated with each element to the master
         # list containing the limits for all groups
         #names(lim)   <- groups[[j]]
-        names(vsens) <- groups[[j]]
         lim_return[[j]]  <- lim
-        sensitivity[[j]] <- vsens
     }
 
     # return the data structure
     names(lim_return)  <- names(groups)
-    names(sensitivity) <- names(groups)
     return(list(data = dset_new, original_data = data, groups = groups,
                 resp = resp, limits = lim_return, dfilter = dfilter,
-                sdfilter = sdfilter, sensitivity = sensitivity))
+                sdfilter = sdfilter))
 }
 
 #' Project what the response would be if only this variable were relevant.
