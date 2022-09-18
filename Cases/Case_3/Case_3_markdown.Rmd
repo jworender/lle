@@ -288,18 +288,13 @@ model_1a <- collapse_limits(model_1)
 message("  Done.")
 ```
 
-It is clear from the performance of the new training set that there is a
-significant performance boost when the new versions of each feature with
-slightly different critical ranges are created. The level of additional
-computational power is very significant, however.  The original data set for
-Case III was 3,437 examples with 56 features each, but when the new versions are
-calculated to a modest resolution the data set expands to 3,437 examples with
-526 features each.  That is approximately one-sixhundredth of the maximum
-possible size of the expanded version set.  Remarkably, however, it appears to
-be enough to create a reasonably accurate model.  Fig. 17 shows the test set
-when applied to the model created with the limited number of extra versions, and
-the performance advantage over the LASSO applied to the original continuous data
-is markedly large.
+It is clear from the performance of the new models trained with extra versions
+of each feature that would exist if a logical 'OR' relationship existed that
+there is a significant performance boost when the new versions of each feature
+with different critical ranges are created. The Figures below show the training
+and test sets when applied to the model created with the limited number of extra
+versions, and the performance advantage over the LASSO applied to the original
+continuous data is profound.
 
 ```{r transformed_data_plots_ev, echo=FALSE}
 hpos <- 0.4
@@ -312,12 +307,7 @@ plot(model_1a, title = "Case #3 Test Set (with extra versions)",
 The LASSO results with the unmodified continuous data shown above indicate that
 while there is definitely a relationship, the difficulty in creating a model in
 which multiple features within the same data set can independently cause the
-same result is evident. While limiting the size of the expanded data set with
-the multiple versions produces a highly accurate model, the cost is that the
-interpretability of the coefficients suffers (see the coefficient bar plot
-below).  In order to regain that interpretability, the features must be
-disentangled such that the logical OR relationships are removed, and each set of
-events on either side of the 'OR' operator modeled separately.
+same result is evident. 
 
 ```{r transformed_data_barplot_ev, echo=FALSE}
 TRANS   <- 0.2
