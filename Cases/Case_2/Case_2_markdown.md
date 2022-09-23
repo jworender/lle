@@ -7,13 +7,7 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(stringr, quietly = TRUE)
-library(dplyr, quietly = TRUE)
 
-
-```
 ## Introduction
 
 This document was created by running the "Case_2_markdown.Rmd" file in RStudio.
@@ -50,9 +44,7 @@ The data generation script will produce a plot of the entire data set for each
 feature over each time step.  There are a large number of these plots, but the
 process for generation and the explanation of the results is located below.
 
-```{r generate_data, echo=FALSE}
-source("build_case_2_data.R")
-```
+![](Case_2_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-5.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-6.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-7.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-8.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-9.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-10.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-11.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-12.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-13.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-14.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-15.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-16.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-17.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-18.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-19.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-20.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-21.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-22.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-23.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-24.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-25.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-26.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-27.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-28.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-29.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-30.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-31.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-32.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-33.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-34.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-35.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-36.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-37.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-38.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-39.png)<!-- -->![](Case_2_markdown_files/figure-html/generate_data-40.png)<!-- -->
 
 ## The data generation process
 
@@ -138,13 +130,7 @@ logical OR and logical AND will be generated in an identical way up to step 6.
 Step 6 will be modified accordingly to generate the desired relationships among
 the relevant variables.
 
-```{r load_functions, echo=FALSE}
-# Loading the functions that will be used to process the data - these are
-# defined in a separate script file to allow re-use between markdown documents
-# as well as create a set of generalized code that might be useful to others.
-source("../../Code/functions.R")
-source("../../Code/rectify.R")
-```
+
 
 ## Plot the Results
 
@@ -158,28 +144,41 @@ answer fidelity when not all relevant variables are present. The following speci
 5.	There are 1474 examples in the test set, 232 of which are positive examples.  All test set examples are unseen until tested against the trained model and should be considered novel data.
 
 
-```{r fit_models_m5, echo=FALSE}
-message("Detecting groups...")
-dstruct_m5       <- organize(dset_m5_train)
-dset_m5_groups   <- dstruct_m5$groups
-dstruct_m510     <- organize(dset_m510_train)
-dset_m510_groups <- dstruct_m510$groups
-message("  Done.")
 
-# This code block uses a specialized routine called "modelfit" which is a
-# generalized routine that fits data to a specified model type.  It was made
-# to simplify the interface and make the code more succinct.
-message("Fitting Models...")
-# SQ means square rectified, which is a LASSO run on transformed data
-model_1_m5 <- modelfit(data = dset_m5_train, dtype = "SQ", groups = dset_m5_groups,
-                       params = list(sdfilter = NULL))
-# LS just means LASSO
-model_2_m5 <- modelfit(data = dset_m5_train, dtype = "LS", groups = dset_m5_groups)
+```
+## Detecting groups...
+```
 
-model_1_m510 <- modelfit(data = dset_m510_train, dtype = "SQ", groups = dset_m510_groups,
-                params = list(sdfilter = NULL))
-model_2_m510 <- modelfit(data = dset_m510_train, dtype = "LS", groups = dset_m510_groups)
-message("  Done.")
+```
+##   Done.
+```
+
+```
+## Fitting Models...
+```
+
+```
+## Warning: package 'rlang' was built under R version 4.2.1
+```
+
+```
+## Loaded glmnet 4.1-4
+```
+
+```
+## Loading required package: openssl
+```
+
+```
+## Warning: package 'openssl' was built under R version 4.2.1
+```
+
+```
+## Linking to: OpenSSL 1.1.1k  25 Mar 2021
+```
+
+```
+##   Done.
 ```
 There is very little difference between the plots of the training and test set
 performance below and those of Case I with the exception of the absent variable
@@ -189,122 +188,74 @@ all but a handful of examples can be fully explained by the other relevant
 variables.  However, if a more important relevant variable is not in the
 training set, there is a considerably greater effect.  
 
-```{r transformed_data_m5_plots, echo=FALSE}
-hpos <- 0.4
-message("Plotting transformed data examples...")
-plot(model_1_m5, title = "Case #2 (minus curve #5) Training Set", h=.5, cx = hpos)
-plot(model_1_m5, title = "Case #2 (minus curve #5) Test Set", data = dset_m5_test, h=.5, cx = hpos)
-message("  Done.")
+
+```
+## Plotting transformed data examples...
 ```
 
-```{r untransformed_data_m5_plots, echo=FALSE}
-message("Plotting un-transformed data examples...")
-plot(model_2_m5, title = "Case #2 Training Set (no transform, minus #5)", h=.5,
-     cx = hpos)
-plot(model_2_m5, title = "Case #2 Test Set (no transform, minus #5)",
-     data = dset_test, h=.5, cx = hpos)
-message("  Done.")
+```
+## 
+## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+![](Case_2_markdown_files/figure-html/transformed_data_m5_plots-1.png)<!-- -->![](Case_2_markdown_files/figure-html/transformed_data_m5_plots-2.png)<!-- -->
+
+```
+##   Done.
+```
+
+
+```
+## Plotting un-transformed data examples...
+```
+
+![](Case_2_markdown_files/figure-html/untransformed_data_m5_plots-1.png)<!-- -->![](Case_2_markdown_files/figure-html/untransformed_data_m5_plots-2.png)<!-- -->
+
+```
+##   Done.
 ```
 
 Using the same data set as the previous case, but with relevant variable #5
 deleted from the data set before training yields the coefficient bar plot below.
 
-```{r transformed_data_m5_barplot, echo=FALSE}
-TRANS   <- 0.2
-BARHT   <- 7.5
-beta1   <- model_1_m5$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
+![](Case_2_markdown_files/figure-html/transformed_data_m5_barplot-1.png)<!-- -->
 
-cols[grep("V8TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta1))]  <- BARHT
-cols[grep("V9TM1", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta1))]   <- BARHT
-cols[grep("V10TM0", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V10TM0", names(beta1))]  <- BARHT
-cols[grep("V13TM2", names(beta1))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta1))]  <- BARHT
-cols[grep("V25TM3", names(beta1))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta1))]  <- BARHT
-cols[grep("V30TM7", names(beta1))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta1))]  <- BARHT
-
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Transformed Data Fit (minus #5)")
-cnames <- c("V8TM10", "V9TM1", "V10TM0", "V13TM2", "V25TM3", "V30TM7")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
-
-```{r untransformed_data_m5_barplot, echo=FALSE}
-BARHT   <- 20
-beta2   <- model_2_m5$model$beta[,]
-markers <- rep(0,length(beta2))
-cols    <- rep(rgb(0,0,0,0), length(beta2))
-  
-cols[grep("V8TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta2))]  <- BARHT
-cols[grep("V9TM1", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta2))]   <- BARHT
-cols[grep("V10TM0", names(beta2))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V10TM0", names(beta2))]  <- BARHT
-cols[grep("V13TM2", names(beta2))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta2))]  <- BARHT
-cols[grep("V25TM3", names(beta2))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta2))]  <- BARHT
-cols[grep("V30TM7", names(beta2))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta2))]  <- BARHT
-  
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta2, border = "blue", col = "blue", ylim = c(-BARHT, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Un-Transformed Data Fit (minus #5)")
-cnames <- c("V8TM10", "V9TM1", "V10TM0", "V13TM2", "V25TM3", "V30TM7")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
+![](Case_2_markdown_files/figure-html/untransformed_data_m5_barplot-1.png)<!-- -->
 
 With both variable #5 and variable #10 missing, the plots below show that the
 performance suffers and that the coefficients are far less clear about which
 variables and time steps are the most relevant.  
 
-```{r transformed_data_m510_plots, echo=FALSE}
-hpos <- 0.4
-message("Plotting transformed data examples...")
-plot(model_1_m510, title = "Case #2 (minus curve #5/10) Training Set", h=.5,
-     cx = hpos)
-plot(model_1_m510, title = "Case #2 (minus curve #5/10) Test Set",
-     data = dset_m510_test, h=.5, cx = hpos)
-message("  Done.")
+
+```
+## Plotting transformed data examples...
+```
+
+![](Case_2_markdown_files/figure-html/transformed_data_m510_plots-1.png)<!-- -->![](Case_2_markdown_files/figure-html/transformed_data_m510_plots-2.png)<!-- -->
+
+```
+##   Done.
 ```
 
 With both variable #5 and variable #10 missing, the plots below show that the
 performance suffers and that the coefficients are far less clear about which
 variables and time steps are the most relevant. 
 
-```{r untransformed_data_m510_plots, echo=FALSE}
-message("Plotting un-transformed data examples...")
-plot(model_2_m510, title = "Case #2 Training Set (no transform, minus #5/10)", h=.5,
-     cx = hpos)
-plot(model_2_m510, title = "Case #2 Test Set (no transform, minus #5/10)",
-     data = dset_test, h=.5, cx = hpos)
-message("  Done.")
+
+```
+## Plotting un-transformed data examples...
+```
+
+![](Case_2_markdown_files/figure-html/untransformed_data_m510_plots-1.png)<!-- -->![](Case_2_markdown_files/figure-html/untransformed_data_m510_plots-2.png)<!-- -->
+
+```
+##   Done.
 ```
 
 The coefficients when there is data missing are far less sparse and not nearly
@@ -315,72 +266,9 @@ coefficient size.  Because of this, the model which used the transformed data
 still outperforms the one that was fitted with the original continuous data
 by a large margin.
 
-```{r transformed_data_m510_barplot, echo=FALSE}
-TRANS   <- 0.2
-BARHT   <- 7.5
-beta1   <- model_1_m510$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
+![](Case_2_markdown_files/figure-html/transformed_data_m510_barplot-1.png)<!-- -->
 
-cols[grep("V8TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta1))]  <- BARHT
-cols[grep("V9TM1", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta1))]   <- BARHT
-cols[grep("V13TM2", names(beta1))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta1))]  <- BARHT
-cols[grep("V25TM3", names(beta1))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta1))]  <- BARHT
-cols[grep("V30TM7", names(beta1))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta1))]  <- BARHT
-
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Transformed Data Fit (minus #5/10)")
-cnames <- c("V8TM10", "V9TM1", "V13TM2", "V25TM3", "V30TM7")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
-
-```{r untransformed_data_m510_barplot, echo=FALSE}
-BARHT   <- 20
-beta2   <- model_2_m510$model$beta[,]
-markers <- rep(0,length(beta2))
-cols    <- rep(rgb(0,0,0,0), length(beta2))
-  
-cols[grep("V8TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V8TM10", names(beta2))]  <- BARHT
-cols[grep("V9TM1", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta2))]   <- BARHT
-cols[grep("V13TM2", names(beta2))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
-markers[grep("V13TM2", names(beta2))]  <- BARHT
-cols[grep("V25TM3", names(beta2))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
-markers[grep("V25TM3", names(beta2))]  <- BARHT
-cols[grep("V30TM7", names(beta2))]     <- rgb(0.1, 0.1, 0.0,TRANS) #DARK BROWN
-markers[grep("V30TM7", names(beta2))]  <- BARHT
-  
-par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta2, border = "blue", col = "blue", ylim = c(-BARHT, BARHT), las = 2,
-        xaxt = "n")
-
-par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
-                 yaxt = "n", main = "Coefficient Magnitudes for Un-Transformed Data Fit (minus #5/10)")
-cnames <- c("V8TM10", "V9TM1", "V13TM2", "V25TM3", "V30TM7")
-bplot_at <- NULL
-for (i in 1:length(cnames))
-  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
-bplot_labels <- rep(NA, length(beta1))
-bplot_labels[bplot_at] <- cnames
-axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
-```
+![](Case_2_markdown_files/figure-html/untransformed_data_m510_barplot-1.png)<!-- -->
 
 The more missing data there is, the greater the level of noise in the final
 result.  While this is inconvenient, it is also a reliable indicator regarding

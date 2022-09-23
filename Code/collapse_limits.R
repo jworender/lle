@@ -33,7 +33,6 @@ collapse_limits <- function(obj, thresh = 0.5) {
     
     in_min <- min(obj$data[fps,nm])
     in_max <- max(obj$data[fps,nm])
-    ncontained <- sum((obj$data[fps,nm] > l[1]) & (obj$data[fps,nm] < l[2]))
     
     # region #1 is the portion of the critical range that is below the false
     # range
@@ -41,16 +40,18 @@ collapse_limits <- function(obj, thresh = 0.5) {
     if (l[1] < in_min) r1[2] <- in_min
     else if ((l[1] >= in_min) & (l[1] <= in_max)) r1[2] <- in_max
     else if (l[1] > in_max) r1[2] <- l[2]
+    if ((r1[1] > in_min) & (r1[2] < in_max)) r1[2] <- l[1] 
     if (r1[2] > l[2]) r1[2] <- l[2]
-    
+
     # region #2 is the portion of the critical range that is above the false
     # range
     r2 <- c(0,l[2])
     if (l[2] > in_max) r2[1] <- in_max
     else if ((l[2] >= in_min) & (l[2] <= in_max)) r2[1] <- in_min
     else if (l[2] < in_min) r2[1] <- l[1]
-    if (r2[1] < in_min) r2[1] <- l[1]
-    
+    if ((r2[1] > in_min) & (r2[2] < in_max)) r2[1] <- l[2] 
+    if (r2[1] < l[1]) r2[1] <- l[1]
+
     # figure out which region is bigger and choose that region for the new
     # limits - one of the regions is sometimes a sliver that does not actually
     # contain any points
@@ -58,6 +59,9 @@ collapse_limits <- function(obj, thresh = 0.5) {
       lnew <- r1
     else
       lnew <- r2
+    ncontained <- sum((obj$data[,nm] > lnew[1]) &
+                      (obj$data[,nm] < lnew[2]))
+    if (ncontained == 0) lnew <- l
     
     limits[[dict[nm]]][[nm]] <- lnew    
   }

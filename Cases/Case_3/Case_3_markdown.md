@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case III"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-09-18"
 output: 
   html_document: 
     keep_md: yes
@@ -11,7 +11,7 @@ output:
 ## Introduction
 
 This document was created by running the "Case_3_markdown.Rmd" file in RStudio.
-It utilizes the script files "functions.R", "rectify.R", and "OR_encode.R",
+It utilizes the script files "functions.R", "rectify.R", and "collapse_limits.R",
 within the "Code" directory in this repository, which are used to define the
 functions that are called below.  This document will create all of the synthetic
 data, fit the data to a model, and then display the results.  Anyone interested
@@ -23,30 +23,30 @@ of that document in order to stay within a ten page limit.
 ## Generate the Data
 
 The data generation script is in the file named "build_case_3_data.R".  It will
-generate three files: 1) dset, 2) dset_train, and 3) dset_test.  The "dset" file
-is a consolidated data set, while "dset_train" and "dset_test" files are
-mutually exclusive subsets of "dset".  This document can be run as a notebook,
-block by block, or it can also be knitted into an html document if desired.
+generate three data sets: 1) dset, 2) dset_train, and 3) dset_test.  The "dset" 
+object is a consolidated data set, while the "dset_train" and "dset_test"
+objects are mutually exclusive subsets of "dset".  This document can be run as a notebook, block by block, or it can also be knitted into an html document if
+desired.
 
 The "relevant" data is taken from curves 1, 2, 4, and 5.  They are marked
 "RELEVANT" in the chart title.  The plots generated from the next code block
 show 5 different curves, only 4 of which contain relevant data.  The other is
 added to obfuscate the data and make the task of picking out the relevant
 features and time steps somewhat harder, but the total number of curves is kept
-low in this example in order to make the task computationally feasible for a
-consumer level device since the computational requirements of this process are
-more intense than the previous cases.  The red markers on the curves show the
-time steps for which all of the criteria for an event are met.  Each time step
-generates an example which includes the data from the ten time steps before.
+low in this example in order to make the process more clear.  The next case is
+similar, but adds a significant number of non-relevant curves.  The red markers
+on the curves show the time steps for which all of the criteria for an event are
+met.  Each time step generates an example which includes the data from the ten
+time steps before.
 
 The data generation script will produce a plot of the entire data set for each
 feature over each time step.  There are a large number of these plots, but the
 process for generation and the explanation of the results is located below.
-Note again that there are only five curves for this case in order to keep the
-computational burden down.  To change this, edit the "build_case_3_data.R" file.
-In order for this markdown to work correctly as written, the relevant curves
-would need to remain the same, but as many non-relevant curves as is desired can
-be added in without changing the details of the code.
+Note again that there are only five curves for this case in order to provide a
+simpler problem.  To change this, edit the "build_case_3_data.R" file. In order
+for this markdown to work correctly as written, the relevant curves would need
+to remain the same, but as many non-relevant curves as is desired can be added
+in without changing the details of the code.
 
 ![](Case_3_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-5.png)<!-- -->
 
@@ -255,31 +255,28 @@ the extra versions calculated.
 ##   Done.
 ```
 
-It is clear from the performance of the new training set that there is a
-significant performance boost when the new versions of each feature with
-slightly different critical ranges are created. The level of additional
-computational power is very significant, however.  The original data set for
-Case III was 3,437 examples with 56 features each, but when the new versions are
-calculated to a modest resolution the data set expands to 3,437 examples with
-526 features each.  That is approximately one-sixhundredth of the maximum
-possible size of the expanded version set.  Remarkably, however, it appears to
-be enough to create a reasonably accurate model.  Fig. 17 shows the test set
-when applied to the model created with the limited number of extra versions, and
-the performance advantage over the LASSO applied to the original continuous data
-is markedly large.
+It is clear from the performance of the new models trained with extra versions
+of each feature that would exist if a logical 'OR' relationship existed that
+there is a significant performance boost when the new versions of each feature
+with different critical ranges are created. The Figures below show the training
+and test sets when applied to the model created with the limited number of extra
+versions, and the performance advantage over the LASSO applied to the original
+continuous data is profound.
 
 ![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->
 
 The LASSO results with the unmodified continuous data shown above indicate that
 while there is definitely a relationship, the difficulty in creating a model in
 which multiple features within the same data set can independently cause the
-same result is evident. While limiting the size of the expanded data set with
-the multiple versions produces a highly accurate model, the cost is that the
-interpretability of the coefficients suffers (see the coefficient bar plot
-below).  In order to regain that interpretability, the features must be
-disentangled such that the logical OR relationships are removed, and each set of
-events on either side of the 'OR' operator modeled separately.
+same result is evident. 
 
 ![](Case_3_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
 
-
+The previous plot shows that two out of the four relevant curves are adequately
+identified as having nonzero coefficients that stand out.  The reason that only
+two are identified is that in this case, the the results can be completely
+described by those two features alone.  They occlude the other features, since
+there are no examples in which the remaining features are needed to explain.  It
+is notable that even though the remaining features are occluded by the first
+two, they still introduced a great deal of error in the standard LASSO, as well
+as the LASSO on the modified data without the extra versions of the features.
