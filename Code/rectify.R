@@ -240,8 +240,10 @@ presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
     # calculating what the response would be if this measurement were the only
     # relevant one
     retrn <- rep(-1, length(measurement))
-    if (rmin != rmax)
+    if (!any(is.na(c(rmin,rmax)))) {
+      if (rmin != rmax)
         retrn[(measurement >= rmin) & (measurement <= rmax)] <- 1
+    }
 
     return(list(vector = retrn, limits = c(rmin, rmax), vsens = vsens))
 

@@ -1,3 +1,9 @@
+# *** CONSTANT DECLARATIONS ***
+# default columns to exclude
+EXCLUDE <- c("X", "UIC", "iDate", "iDate.x","iDate.y", "class", "cols", "year")
+# default response column
+RESP <- "INDC"
+
 # A set of generalized functions used in the markdown documents - these may
 # also be used by others as long as the following comment block is located
 # within the code and proper credit is given in the product produced.
