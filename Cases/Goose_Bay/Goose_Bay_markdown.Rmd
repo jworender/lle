@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-09-25"
 output: 
   html_document: 
     keep_md: yes
@@ -106,19 +106,6 @@ ion_train <- rbind(ion_pos[sample(dim(ion_pos)[1], train_split*pos_balance*dim(i
 ion_test  <- rbind(ion_pos[!(ion_pos$X %in% ion_train$X),],
                    ion_neg[!(ion_neg$X %in% ion_train$X),])
 message("  Done.")
-
-message("Transforming the data...")
-# identifying the apparent critical ranges and creating a binary classified
-# version of the data
-ion_sq_train <- rectify(data = ion_train, resp = resp, exclude = exclude,
-                         groups = ion_groups, dfilter = NULL, sdfilter = NULL)
-# using the apparent critical ranges gleaned from the training set to transform
-# the test set
-ion_sq_test <- rectify(data = ion_test, resp = resp, exclude = exclude,
-                        groups = ion_groups, limits = ion_sq_train$limits,
-                        sdfilter = NULL)
-message("  Done.")
-
 ```
 
 ## Studying the Goose Bay Data
@@ -128,18 +115,9 @@ message("  Done.")
 # generalized routine that fits data to a specified model type.  It was made
 # to simplify the interface and make the code more succinct.
 message("Fitting Models...")
-# This model is a little less clean than the synthetic data, so using a
-# standard deviation filter on the data.  In this case, sdfilter=3 means that
-# any data points more than 3 standard deviations from the mean are ignored. If
-# the data is normal, this is a reasonable expectation.  If the data is not
-# normal there is an alternative "dfilter" parameter that is a density filter
-# which computes the density curve and the theoretical threshold that would
-# represent the density curve if the data were uniformly distributed. Everything
-# that falls below that threshold is excluded.  The level of that threshold can
-# be adjusted by setting the value of dfilter to a factor other than 1.0.
-ion_sq_fit <- modelfit(data = ion_sq_train$data, exclude = exclude, resp = resp,
-                       dtype = "LS", groups = ion_groups,
-                       params = list(sdfilter=3))
+ion_sq_fit <- modelfit(data = ion_train, exclude = exclude, resp = resp,
+                       dtype = "SQ", groups = ion_groups,
+                       params = list(sdfilter=NULL))
 # Fitting the LASSO on the untransformed data
 ion_ls_fit <- modelfit(data = ion_train, dtype = "LS", exclude = exclude,
                        resp = resp, groups = ion_groups)
@@ -154,7 +132,7 @@ specifically tuned and used to analyze the data in the original paper.
 hpos <- 0.4
 plot(ion_sq_fit, title = "Goose Bay Training Set (transformed data)", h=.5,
      cx = hpos)
-plot(ion_sq_fit, data = ion_sq_test$data, h=.5, cx = hpos,
+plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos,
      title = "Goose Bay Testing Set (transformed data)")
 ```
 
