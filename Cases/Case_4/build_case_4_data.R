@@ -16,7 +16,7 @@ S          <- 15   # the number of superposed variables to generate
 R          <- c(1, 2, 4, 5)  
               # whether the high & above or low & below or in-between thresholds
 #               area is used
-AB         <- c('a', 'a', 'a', 'a')
+AB         <- c('a', 'a', 'n', 'n')
               # each group will be elements of an "or" clause, whereas each
 #               element within the group will be considered an "and" clause
 #               (the groups must be sequentially numbered from one)
@@ -28,9 +28,9 @@ train_fr   <- 0.5  # the fraction of the dataset used for the training portion o
               # the time displacements for the variables
 disp       <- c(5, 10, 0, 3, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)
-thresh_a   <- .7    # threshold above which the result contributes to a TRUE
+thresh_a   <- .5    # threshold above which the result contributes to a TRUE
 #                    example for 'a' curves
-thresh_b   <- .55   # threshold below which the result contributes to a TRUE
+thresh_b   <- .7   # threshold below which the result contributes to a TRUE
 #                    example for 'b' curves
                    # (as a fraction of the max)
                    # NOTE:  For the narrow range 'n', results that lie within
@@ -198,7 +198,9 @@ curve_data <- list(relev = R, thresh_a = thresh_a, thresh_b = thresh_b, disp = d
                    time_steps = time_steps, dset = dset)
 
 dset_train <- dset[sample(dim(dset)[1], train_fr*dim(dset)[1]),]
-dset_test  <- dset[!(dset$X %in% dset_train$X),]
+temp       <- dset[!(dset$X %in% dset_train$X),]
+dset_dev   <- temp[sample(dim(temp)[1], 0.5*dim(temp)[1]),]
+dset_test  <- temp[!(temp$X %in% dset_dev$X),]
 
 limlist    <- list()
 for (i in 0:H) limlist[[i+1]] <- c(0,0)

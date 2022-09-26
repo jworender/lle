@@ -187,12 +187,12 @@ distinctive pattern shown in the following plots.
 ```
 
 The perfect classification of the positive examples and poor classification
-performance of the negative examples in both the training and test set is a
-distinctive relationship that occurs often when there is a logical 'OR'
-relationship present.  Once this is known, steps can be taken to make the
-additional computational investment of creating additional versions of the
-features that might exist with different critical ranges and then fitting the
-new larger (about 2 x size) data set.  
+performance of the negative examples in the training and near perfect
+classification for othe test set is a distinctive relationship that occurs often
+when there is a logical 'OR' relationship present.  Once this is known or
+suspected, steps can be taken to make the additional computational investment of
+creating additional versions of the features that might exist with different
+critical ranges and then fitting the new larger (sized two times plus) data set.  
 
 
 ```
@@ -217,7 +217,7 @@ new larger (about 2 x size) data set.
 ```
 
 Without calculating the extra versions, the un-transformed data actually
-outperforms the transformed data.
+outperforms the transformed data, but not by much.
 
 
 ```
@@ -235,16 +235,52 @@ outperforms the transformed data.
 ![](Case_4_markdown_files/figure-html/untransformed_data_barplot-1.png)<!-- -->
 
 The computational advantage is slightly reduced when the extra versions are
-calculated because the size of the new data set is essentially double that of
-the old one. However, the increase in performance in terms of the accuracy of
+calculated because the size of the new data set is essentially double-plus that
+of the old one. However, the increase in performance in terms of the accuracy of
 the model when compared to the non-transformed data is arguably worth expending
-the small amount of extra computational energy to produce the much better
+the small-ish amount of extra computational energy to produce the much better
 results. The next plots show the success of the fit against the test set with
-the extra versions calculated.
+the extra versions calculated.  The procedure that was followed, which seems to
+yield generally good results, is repeatedly running the algorithm that
+calculates the extra versions and fits the model until there are no more false-
+positives in the training set, then run the algorithm using the development set
+instead of the training set, and then finally run the algorithm on the training
+set again until there are no more false-positive results.
 
 
 ```
 ## Fitting a new model with additional feature versions that *might* exist...
+```
+
+```
+## 
+##   Running model through
+```
+
+```
+## 1 2 3 4
+```
+
+```
+## times
+##       +
+```
+
+```
+## 1 2 3
+```
+
+```
+##  times throught the devset
+##       +
+```
+
+```
+## 1 2 3
+```
+
+```
+## more times through the training set.
 ```
 
 ```
@@ -254,31 +290,26 @@ the extra versions calculated.
 It is clear from the performance of the new models trained with extra versions
 of each feature that would exist if a logical 'OR' relationship existed that
 there is a significant performance boost when the new versions of each feature
-with different critical ranges are created. The Figures below show the training
-and test sets when applied to the model created with the limited number of extra
-versions, and the performance advantage over the LASSO applied to the original
-continuous data is profound.
+with different critical ranges are created. The Figures below show the training,
+development, and test sets when applied to the model created with the limited
+number of extra versions, and the performance advantage over the LASSO applied
+to the original continuous data is profound.
 
-![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->
+![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-3.png)<!-- -->
 
 The LASSO results with the unmodified continuous data shown above indicate that
-while there is definitely a relationship, the difficulty in creating a model in
-which multiple features within the same data set can independently cause the
-same result is evident. 
+while there is definitely a relationship, it is not very precise and the the
+difficulty in creating a model in which multiple features within the same data
+set can independently cause the same result is evident. 
 
 ![](Case_4_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
 
-As with case 3, two of the features occlude the other two that share an OR
-relationship with the first two, though in this case chance has favored the
-latter two features.  The success of this method hinges on whether there is
-enough information to accurately define the true critical ranges of the features
-present.  This generally occurs when there are enough negative examples at the
-margins of the critical ranges to show where those critical ranges begin and
-end.  If the positive examples cover the entirety of the ranges of the negative
-examples for a feature, this will result in no usable data and the process will
-fail.  In those cases, the only recourse is to define a large number of possible
-critical range boundaries and fit them all simultaneously, which *greatly*
-increases the computational load of the process. However, this process generally
-works in many more situations and may dramatically increase the accuracy of the
-model.
+Unlike case 3, this set of coefficients is considerably noisier.  It is worth
+pointing out that the truly relevant features and time steps *are* indicated,
+but they are indistinguishable from the noise at this point. The success of this
+method hinges on whether there is enough information to accurately define the
+true critical ranges of the features present, and each additional set of non-
+relevant data causes this burden to incrementally rise.  As more data is
+analyzed, however, the more clear the result will become, allowing a steady
+removal of non-relevant features, until only the relevant ones are left.
 
