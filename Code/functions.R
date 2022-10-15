@@ -417,7 +417,7 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
                     rescale = NULL) {
   
   if (is.null(model)) return(NULL)
-  # an nmaps object was submitted instead of just a model
+  # a modobj object was submitted instead of just a model
   if (any(class(model) == "modobj")) model <- model$model
   
   if (isTRUE(model$dtype == "ENSEMBLE")) {
@@ -427,35 +427,18 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
       warning("'Ensemble' only contains one model.  Passing model through.")
     }
     else {
-      resmat <- do.call(densemble, args = c(model$models,
-                                            list(devset = data, resp = NULL,
-                                                 rm.na = FALSE)))
+      resmat <- do.call(model_ensemble, args = c(model$models,
+                        list(devset = data, resp = NULL, rm.na = FALSE)))
       model$dtype <- model$dtype2
       pred   <- modfunc(model, resmat, result_column = NULL)
       dtype  <- -1
     }
   }
-  else if (isTRUE(model$dtype == "BOOSTED")) {
-    pred <- NULL
-    for (i in 1:length(model$models)) {
-      result <- modfunc(model$models[[i]], data = data,
-                      result_column = NULL)
-      if (i == 1) pred <- result
-      else        pred <- pred+result
-    }
-    # decision tree models can sometimes give a slightly negative
-    # number or a number slightly greater than one
-    pred[pred < 0] <- 0
-    pred[pred > 1] <- 1
-    dtype          <- -1
-  }
-  
+
   if (is.null(dtype)) dtype <- model$dtype
   if (is.null(dtype)) {
-    warning(paste0("No discriminator type embedded in the model or ",
-                   "otherwise supplied.\n  Assuming this is a legacy ",
-                   "logistic regression (LR) model."))
-    dtype <- "LR" }
+    warning(paste0("ERROR! Must supply the discriminator type"))
+    return(NULL) }
   
   # checking to make sure that all required packages are installed and loaded
   # for the predefined discriminator function types
@@ -1478,6 +1461,48 @@ find_func <- function(func) {
   return(func_return)
 }
 
+#' Remove any rows with NA values in them.
+#'
+#' This function removes any rows in an input data set that have NA, NaN, or
+#' NULL values in them.  This code was being repeated often enough that a
+#' utility function was made to simplify the package code.  This function can
+#' also be used to check for NA or NULL values in rows and generate warnings
+#' but take no action.
+#'
+#' @name rmna_rows
+#' @param data The data set to have the NA data filtered out.
+#' @param rm.na Remove any rows with NA values. The default is TRUE.
+#' @param rm.null Remove any rows with NULL values. The default is TRUE.
+#' @param verbose Print informational messages.
+#' @return The filtered data set.
+#' @export
+rmna_rows <- function(data, rm.na = TRUE, rm.null = TRUE, verbose = TRUE) {
+  
+  na_rows   <- unlist(lapply(1:dim(data)[1],
+                             FUN = function(i) {any(is.na(data[i,]))}))
+  
+  null_rows <- unlist(lapply(1:dim(data)[1],
+                             FUN = function(i) {any(is.null(data[i,]))}))
+  
+  if (!rm.na & any(na_rows) & verbose)
+    warning("There are NA entries in this data set. The code may fail.")
+  
+  if (!rm.null & any(null_rows) & verbose)
+    warning("There are NULL entries in this data set. The code may fail.")
+  
+  if (rm.na & any(na_rows)) {
+    if (verbose) message("Removing rows with NA entries.")
+    data <- data[!na_rows,]
+  }
+  
+  if (rm.null & any(null_rows)) {
+    if (verbose) message("Removing rows with NULL entries.")
+    data <- data[!null_rows,]
+  }
+  
+  return(data)
+}
+
 
 #' Search a list or vector for an entry that contains the entries of another
 #' list or vector and return the index of all elements that satisfy the
@@ -1738,6 +1763,5 @@ plot.modobj <- function(modobj, data = NULL, h = 0.5,  v = 0,
 predict.modobj <- function(modobj, data = NULL) {
   # use a new data set if it is supplied, otherwise use embedded data
   if (is.null(data %O?% modobj))  return(NULL)
-  return(modfunc(model = modobj$model, data = data, result_column = NULL,
-               checkdata = FALSE))
+  return(modfunc(model = modobj$model, data = data, result_column = NULL))
 }
