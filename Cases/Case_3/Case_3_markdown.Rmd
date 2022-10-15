@@ -336,8 +336,8 @@ cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
 bplot_at <- NULL
 labs     <- NULL
 for (i in 1:length(cnames)) {
-  labs <- c(labs, names(beta1)[grep(paste0("^",cnames[i],"_"),names(beta1))])
-  bplot_at <- c(bplot_at,grep(paste0("^",cnames[i],"_"),names(beta1)))
+  labs <- c(labs, names(beta1)[grep(paste0(cnames[i]),names(beta1))])
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i]),names(beta1)))
 }
 bplot_labels <- rep(NA, length(beta1))
 bplot_labels[bplot_at] <- labs
@@ -352,3 +352,8 @@ there are no examples in which the remaining features are needed to explain.  It
 is notable that even though the remaining features are occluded by the first
 two, they still introduced a great deal of error in the standard LASSO, as well
 as the LASSO on the modified data without the extra versions of the features.
+
+
+
+
+
