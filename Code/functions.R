@@ -19,220 +19,115 @@ RESP <- "INDC"
 #'
 #' @name modelfit
 #' @author Jason Orender
-#' @param data The training data for the model.  It should have columns
-#'     that contain the response variable and additional columns corresponding
-#'     to any features used in the formula.  If NULL, the data must be
-#'     provided in the "params" parameter in the specific way that the
-#'     discriminator function requires.  Any data conditioning is done
-#'     automatically for the built-in discriminator types.  If provided, this
-#'     parameter overrides the data provided in the "params" parameter (i.e. if
-#'     both are present only the data provided in this parameter is used).
-#' @param fvec A vector of feature names to fit the model to.  If NULL, every
-#'     column except for the response column (supplied usig the "resp"
+#' @param data The training data for the model.
+#' @param fit_features A vector of feature names to fit the model to.  If NULL, every
+#'     column except for the response column (supplied using the "response"
 #'     parameter) and the excluded columns (supplied by the "exclude"
 #'     parameter) will be assumed to be a feature.
-#' @param exclude The names of columnns to exclude if they exist in the data
+#' @param exclude The names of columns to exclude if they exist in the data
 #'     set.  An error will NOT be generated if a column exists in the exclude
 #'     parameter but does not exist within the data set.
-#' @param resp This parameter identifies the response variable.  The default
+#' @param response This parameter identifies the response variable.  The default
 #'     is "INDC" (for "indicator").  This will be the name of the appropriate
 #'     column in the data set.
-#' @param dtype The discriminator type to use.  "LR" = logistic regression,
-#'     "LRGD" = logistic regression with gradient descent, "NN" = neural net,
+#' @param fit_type The type of fit to use.  "LR" = logistic regression,
 #'     "LS" = LASSO regression, "RF" = Random Forest, "RR" = Ridge regression,
-#'     "SQ" = Square rectified LASSO regression (the default). A function can
-#'     also be passed through this parameter to use an arbitrary model fitting
-#'     function with the "modelfit" function used essentially as a wrapper that
-#'     organizes the results into a properly formatted modobj object. The model
-#'     fitting function must produce something that will work with the "predict"
-#'     standard R function, since that is what the "modfunc" function uses to
-#'     calculate new results.
+#'     "SQ" = Square rectified LASSO regression (the default). 
 #' @param groups The groupings of the features in correct chronological order.
-#'     If this is not provided, the function will attempt discern this by
-#'     using the "organize" function.  Currently, this data is only used to fit
-#'     when using the square rectified LASSO option, however this data is used
-#'     during other operations to better organize the outputs.
-#' @param params A list of parameters to be used for the specific fit type. The
-#'     parameters correspond to the specific package fit function.  If NULL,
-#'     the defaults will be used.  Any parameters provided here (with the
-#'     exception of data and response parameters) will override any defaults and
-#'     be recorded in the resulting NMAPS object.  To determine which options
-#'     are available, look up the corresponding package fit function.  For "LR",
-#'     see the \link[stats]{glm} function.  For "LRGD", "LS", "RR", or "SQ"see
-#'     the \link[glmnet]{glmnet} function; additionally, for "SQ" see the
-#'     rectify function.  For "NN", see the \link[neuralnet]{neuralnet}
-#'     function. For "RF", see the \link[randomForest]{randomForest} function.
-#'     Each of these have highly specialized inputs for controlling the fitting
-#'     process.
+#' @param params Extra parameters to use with the particular fit_type.
 #' @param verbose If TRUE, informational messages are sent to the console as
 #'     the fit progresses.
 #' @return An nmaps object that contains a model and the data used to fit it..
-modelfit <- function(data = NULL, fvec = NULL, exclude = "X", resp = "INDC",
-                     dtype = "SQ", groups = NULL, params = NULL,
-                     verbose = FALSE) {
-  
-  # This function is intended to be a wrapper for as many different
-  # discriminator function types as desired during later development, so that
-  # a consistent set of inputs can be used to generate a consistent set of
-  # outputs regardless of the pecularities of the model generation function;
-  # it also selects optimal default inputs.  This function, in effect,
-  # modularizes fitting a model using any number of methods.
-  
-  # checking to make sure that all required packages are installed and loaded
-  # for the predefined discriminator function types
-  pkg <- c("stringr", "rlang", "dplyr")
-  if (!is.function(dtype)) {
-    if (dtype == "LR")
-      pkg <- c(pkg, "stats")
-    else if ((dtype == "LRGD") | (dtype == "LS") | (dtype == "RR") |
-             (dtype == "SQ") | (dtype == "DSQ"))
-      pkg <- c(pkg, "glmnet")
-    else if (dtype == "NN")
-      pkg <- c(pkg, "neuralnet")
-    else if (dtype == "RF")
-      pkg <- c(pkg, "randomForest")
+modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
+                     response = "INDC", fit_type = "SQ", groups = NULL,
+                     params = NULL, verbose = FALSE) {
+
+  if (!require(rlang)) {
+    message("ERROR! Proper packages not installed.")
+    return(NULL)
   }
-  for (p in pkg) {
-    if (!require(p, character.only = TRUE, quietly = TRUE)) {
-      message(paste0("The '",p,"' package must be installed to use ",
-                     "this function."))
-      return(NULL)
-    }
-  }
+  
   
   # removing columns intended to be excluded from analysis - keeping only
   # analysis features and the response column as the training data set from
   # this point forward
   if (!is.null(data)) {
     feats <- colnames(data)
-    feats <- sort(feats[!(feats %in% c(resp, exclude))])
-    tdata <- data[,c(feats, resp)]
+    feats <- sort(feats[!(feats %in% c(response, exclude))])
+    tdata <- data[,c(feats, response)]
   }
   else {
     feats <- NULL
     tdata <- NULL
   }
   
-  # attempting to ensure that the feature groups are properly set up
-  # if there is an error, try to proceed anyway
-  if (is.null(groups) & !is.null(tdata)) {
-    groups <- tryCatch({
-      organize(data = tdata[,feats], group_by = "names")$groups },
-      error = function(cond) {
-        NULL
-      })
-  }
-  
-  # pre-process the data if necessary
-  if (!is.function(dtype)) if ((dtype == "SQ") |(dtype == "DSQ")) {
+  # pre-process the data if a rectified data set is needed
+  if (fit_type == "SQ")  {
     # get the default parameters
-    rectify_params <- as.list(fn_fmls(rectify))
-    # set specific default parameters
+    rectify_params           <- as.list(fn_fmls(rectify))
     rectify_params$data      <- tdata
     rectify_params$exclude   <- exclude
-    rectify_params$resp      <- resp
+    rectify_params$resp      <- response
     rectify_params$groups    <- groups
-    # figure out which of the default parameters has been overridden by
-    # the submitted parameters
+    # override default parameters using submitted parameters
     common_params   <- names(rectify_params)[names(rectify_params)
                                               %in% names(params)]
     # overwrite any default parameters that have been supplied
     if (length(common_params) > 0)
       rectify_params[common_params] <- params[common_params]
     
-    # transform the data via square rectification
-    dstruct <- do.call(rectify, args = rectify_params)
-    # if the data needs to be dwell time encoded, do that
-    if (dtype == "DSQ") dstruct <- dwell_encode(dstruct)
-    tdata   <- dstruct$data
-    groups  <- dstruct$groups
-    fvec    <- unique(unlist(lapply(fvec, FUN = function(x) {
+    # transform the data via rectification
+    data_struct  <- do.call(rectify, args = rectify_params)
+    tdata        <- data_struct$data
+    groups       <- data_struct$groups
+    fit_features <- unique(unlist(lapply(fit_features, FUN = function(x) {
       colnames(tdata)[grep(paste0(x,"$"),colnames(tdata))] })))
   }
   
   model_info <- NULL
-  # loading the modeling function
-  if (is.function(dtype)) {
-    # if a function was supplied via the dtype parameter, use it for the
-    # modeler
-    modeler    <- dtype
-    model_info <- find_func(modeler)
-    if (is.null(model_info)) {
-      message(paste0("Need to actually load the package into the",
-                     "environment before it can be used as a",
-                     "discriminator type."))
-      return(NULL)
-    }
-    dtype   <- paste0(model_info$pkg,"::",model_info$func)
-    mparams <- list()
-    zparams <- list()
-  }
-  else if (dtype == "LR") {
-    # use all valid columns as the default feature list if none is provided
-    if (is.null(fvec)) fvec <- feats
-    # setting the modeler
-    modeler <- stats::glm
-    # set any explicitly provided parameters
-    mparams <- list(formula = paste0(resp," ~ ",
-                                     paste(fvec, collapse = " + ")),
-                    data = tdata)
-    # these defaults can be overridden by the "params" parameter
-    zparams <- list(family = "binomial")
-  }
-  else if ((dtype == "LRGD") | (dtype == "LS") | (dtype == "RR") |
-           (dtype == "SQ") | (dtype == "DSQ")) {
-    # use all valid columns as the default feature list if none is provided
-    if (is.null(fvec)) fvec <- feats
-    # setting the modeler
+  if ((fit_type == "LR") | (fit_type == "LS") | (fit_type == "RR") |
+      (fit_type == "SQ")) {
+    # use feature column names as the default feature list
+    if (is.null(fit_features)) fit_features <- feats
     modeler <- glmnet::glmnet
-    # set any explicitly provided parameters
-    mparams <- list(x = tdata[,fvec], y = as.logical(data.frame(tdata)[,resp]))
-    if ((dtype == "SQ") | (dtype == "DSQ"))
+    # set explicitly provided parameters
+    mparams <- list(x = tdata[,fit_features],
+                    y = as.logical(data.frame(tdata)[,response]))
+    if (fit_type == "SQ") 
       mparams <- c(mparams, list(standardize = FALSE))
-    # these defaults can be overridden by the "params" parameter
+    # the "zparams" defaults can be overridden
     zparams <- list(family = "binomial")
     
-    if (dtype == "LRGD")
+    if (fit_type == "LR")
       mparams$alpha <- 0
-    else if ((dtype == "LS") | (dtype == "SQ"))
+    else if ((fit_type == "LS") | (fit_type == "SQ"))
       mparams$alpha <- 1
-    else if (dtype == "RR")
+    else if (fit_type == "RR")
       mparams$alpha <- 2
   }
-  else if (dtype == "NN") {
-    # use all valid columns as the default feature list if none is provided
-    if (is.null(fvec)) fvec <- feats
-    # setting the modeler
-    modeler <- neuralnet::neuralnet
-    # set up any explicitly provided parameters or dfit specific defaults
-    mparams <- list(formula = paste0(resp," ~ ", paste(fvec, collapse = " + ")),
-                    data = tdata)
-    # these defaults can be overridden by the "params" parameter
-    zparams <- list(hidden = 3, act.fct = "logistic", linear.output = FALSE)
-  }
-  else if (dtype == "RF") {
-    # use all valid columns as the default feature list if none is provided
-    if (is.null(fvec)) fvec <- feats
-    # if there are NAs, call the randomForest imputation module
-    if (any(is.na(tdata[,fvec]))) {
-      message("Imputing NA values in data...")
+  else if (fit_type == "RF") {
+    # use feature column names as the default feature list
+    if (is.null(fit_features)) fit_features <- feats
+    # if there are NAs, try to impute missing values since randomForest will
+    # error out if there are any holes in the data
+    if (any(is.na(tdata[,fit_features]))) {
+      message("Imputing NA values...")
       suppressWarnings(
-        idata <- rfImpute(tdata[,fvec],
-                          y = as.logical(data.frame(tdata)[, resp])))
-      tdata[,fvec] <- idata[,fvec]
+        idata <- rfImpute(tdata[,fit_features],
+                          y = as.logical(data.frame(tdata)[, response])))
+      tdata[,fit_features] <- idata[,fit_features]
       message("Done.")
     }
-    # setting up the modeler
     modeler <- randomForest::randomForest
-    # set up any explicitly provided parameters or dfit specific defaults
-    mparams <- list(x = tdata[,fvec],
+    # set explicitly provided parameters
+    mparams <- list(x = tdata[,fit_features],
                     y = as.logical(data.frame(tdata)[, resp]),
                     importance = TRUE)
-    # these defaults can be overridden by the "params" parameter
-    zparams <- list(mtry = ceiling(sqrt(length(fvec))))
+    # the "zparams" defaults can be overridden
+    zparams <- list(mtry = ceiling(sqrt(length(fit_features))))
   }
   else {
-    message("ERROR! Discriminator type unknown!")
+    message("ERROR! The fit_type is invalid!")
     return(NULL)
   }
   
@@ -243,27 +138,20 @@ modelfit <- function(data = NULL, fvec = NULL, exclude = "X", resp = "INDC",
     is.atomic(x) | is.matrix(x) | is.data.frame(x)
   }))
   
-  # override the function defaults with the the dfit provided defaults -
-  # these can be overridden by the "params" parameter
+  # set the defaults with the model function provided defaults
   common_params   <- names(modeler_params)[names(modeler_params)
                                            %in% names(zparams)]
-  # overwrite any default parameters that have been supplied
+  # overwrite any supplied parameters set from "zdata" (see above)
   if (length(common_params) > 0) {
     modeler_params[common_params] <- zparams[common_params]
     has.data[common_params]       <- TRUE }
   
-  # figure out which of the default parameters has been overridden by
-  # the submitted parameters (in the "params" parameter)
+  # overwrite any supplied parameters from user-supplied "params"
   common_params   <- names(modeler_params)[names(modeler_params)
                                            %in% names(params)]
-  # overwrite any default parameters that have been supplied
   if (length(common_params) > 0) {
     modeler_params[common_params] <- params[common_params]
     has.data[common_params]       <- TRUE }
-  
-  # override the function defaults with the explicitly provided parameters -
-  # these parameter override all of the others, and is generally only the
-  # data and and response parameters
   common_params   <- names(modeler_params)[names(modeler_params)
                                            %in% names(mparams)]
   # overwrite any default parameters that have been supplied
@@ -271,51 +159,42 @@ modelfit <- function(data = NULL, fvec = NULL, exclude = "X", resp = "INDC",
     modeler_params[common_params] <- mparams[common_params]
     has.data[common_params]       <- TRUE }
   
-  # if there are unspecified arguments, setting the has.data element for that
-  # element to TRUE so that it can perform its function and not be removed
+  # if there are arbitrary arguments, ensuring that they can be passed
   has.data[names(has.data) == "..."] <- TRUE
-  # removing any default parameters that have embedded logic (and not default
-  # data) to ensure that the logic properly executes - any elements that that
-  # were updated by supplying something other than the default are
-  # automatically retained
+  # removing any embedded logic in the parameters
   modeler_params <- modeler_params[has.data]
-  # if there are unspecified arguments (...) in the modeler function, include
-  # the rest of the parameters as well and remove the ellipses from the
-  # parameter list - even unused parameters should not generate an error in
-  # this case
+  
   if (any(names(modeler_params) == "...")) {
     modeler_params <- modeler_params[names(modeler_params) != "..."]
     param_names    <- names(modeler_params)
     modeler_params <- c(modeler_params, zparams[!(names(zparams) %in%
-                                                    unique(c(param_names, names(mparams),
-                                                             names(params))))])
+                        unique(c(param_names, names(mparams),
+                        names(params))))])
     modeler_params <- c(modeler_params, params[!(names(params) %in%
-                                                   unique(c(param_names, names(mparams))))])
+                        unique(c(param_names, names(mparams))))])
     modeler_params <- c(modeler_params, mparams[!(names(mparams) %in%
-                                                    param_names)])
+                        param_names)])
   }
   
-  # fitting the model with the updated parameters
+  # fitting the model
   model <- NULL
   tries <- 0
   while ((is.null(model)) & (tries <= 10)) {
     model <- tryCatch({ suppressWarnings(
       do.call(modeler, args = modeler_params))
     }, error = function(cond) {
-      if (verbose) message("Runtime error, retrying...")
+      if (verbose) message("Retrying...")
       return(NULL)
     })
     tries <- tries + 1
   }
   if (is.null(model)) return(NULL)
-  model$dtype <- dtype
-  
+  model$dtype <- fit_type
   
   # perform post-processing for known model types
-  if ((dtype == "LRGD") | (dtype == "LS") | (dtype == "RR") |
-      (dtype == "SQ") | (dtype == "DSQ")) {
-    # eliminating the iterations that had a lower lambda for a smaller,
-    # more concise model object
+  if ((fit_type == "LR") | (fit_type == "LS") | (fit_type == "RR") |
+      (fit_type == "SQ")) {
+    # eliminating the unused lambdas
     nbest           <- which(model$lambda == min(model$lambda))
     model$a0        <- model$a0[nbest]
     model$beta      <- matrix(model$beta[,nbest], nrow = dim(model$beta)[1],
@@ -326,54 +205,40 @@ modelfit <- function(data = NULL, fvec = NULL, exclude = "X", resp = "INDC",
     model$lambda    <- model$lambda[nbest]
     model$dev.ratio <- model$dev.ratio[nbest]
     
-    fvec <- as.numeric(model$beta[,1])
-    names(fvec) <- rownames(model$beta)
-    fvec <- sort(fvec, decreasing = TRUE)
-    fvec <- fvec[fvec > 0]
-    fvec <- names(fvec)
+    fit_features <- as.numeric(model$beta[,1])
+    names(fit_features) <- rownames(model$beta)
+    fit_features <- sort(fit_features, decreasing = TRUE)
+    fit_features <- fit_features[fit_features > 0]
+    fit_features <- names(fit_features)
   }
   
-  if ((dtype == "SQ") | (dtype == "DSQ")) {
-    climits <- lapply(1:length(dstruct$limits), FUN = function(i) {
-      (dstruct$limits[[i]][names(dstruct$limits[[i]]) %in% fvec]) })
-    climits <- climits %n% names(dstruct$limits)
+  if (fit_type == "SQ") {
+    climits <- lapply(1:length(data_struct$limits), FUN = function(i) {
+      (data_struct$limits[[i]][names(data_struct$limits[[i]]) %in% fit_features]) })
+    climits <- climits %n% names(data_struct$limits)
     
-    model$groups      <- dstruct$groups
-    model$limits      <- dstruct$limits
+    model$groups      <- data_struct$groups
+    model$limits      <- data_struct$limits
     model$climits     <- climits
     model$sdfilter    <- modeler_params$sdfilter
-    model$sensitivity <- dstruct$sensitivity
-    # setting tdata back to the original data set so that the original
-    # data set us stored in the "tdata" parameter of the nmaps object
-    # instead of the altered square-rectified data.
+    # recording the unmodified data in the model object
     tdata <- data
   }
 
-  if (dtype == "RF") {
-    fvec <- names(sort(model$importance[,'%IncMSE'], decreasing = TRUE))
+  # extracting importance if the model was a randomForest type
+  if (fit_type == "RF") {
+    fit_features <- names(sort(model$importance[,'%IncMSE'], decreasing = TRUE))
   }
   
-  # if the data was not passed through the main arguments, attempt to extract
-  # it from the "params" parameter - in some cases, the data will not have the
-  # response column if extracted this way
-  if (is.null(tdata)) {
-    isdata <- unlist(lapply(modeler_params, FUN = function(x)
-      (is.matrix(x) | is.data.frame(x))))
-    tdata <- modeler_params[[which(isdata)[1]]]
-    fvec  <- colnames(tdata)
-  }
-  
-  # find name of modeler package and function and record in model structure - this
-  # has already been done if a modeling function was supplied directly through the
-  # "dtype" parameter
+  # record the name of modeler package and function
   if (is.null(model_info)) model_info <- find_func(modeler)
   model$pkg    <- model_info$pkg
   model$func   <- model_info$func
-  if (model_info$pkg == "unpackaged") model$modeler <- modeler
   model$params <- modeler_params
-  model$feats  <- fvec
+  model$feats  <- fit_features
   
-  modobj <- list(model = model, data = data, resp = resp, feats = fvec)
+  modobj <- list(model = model, data = data, response = response,
+                 feats = fit_features)
   class(modobj) <- "modobj"
   
   return(modobj)
