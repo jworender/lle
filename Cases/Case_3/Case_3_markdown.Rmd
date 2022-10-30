@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case III"
 author: "Jason Orender"
-date: "2022-09-18"
+date: "2022-10-29"
 output: 
   html_document: 
     keep_md: yes
@@ -176,10 +176,10 @@ message("  Done.")
 message("Fitting Models...")
 # SQ means square rectified, which is a LASSO run on transformed data
 message("Fitting initial models...")
-model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
+model_1 <- modelfit(data = dset_train, fit_type = "SQ", groups = dset_groups,
                     params = list(sdfilter = NULL))
 # LS just means LASSO
-model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
+model_2 <- modelfit(data = dset_train, fit_type = "LS", groups = dset_groups)
 message("  Done.")
 ```
 
@@ -284,7 +284,7 @@ the extra versions calculated.
 
 ```{r fit_models_ev, echo=FALSE}
 message("Fitting a new model with additional feature versions that *might* exist...")
-model_1a <- collapse_limits(model_1)
+model_1a <- collapse_limits(model_1, nzones = 0)
 message("  Done.")
 ```
 

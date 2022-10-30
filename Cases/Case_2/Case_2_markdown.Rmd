@@ -171,14 +171,14 @@ message("  Done.")
 # to simplify the interface and make the code more succinct.
 message("Fitting Models...")
 # SQ means square rectified, which is a LASSO run on transformed data
-model_1_m5 <- modelfit(data = dset_m5_train, dtype = "SQ", groups = dset_m5_groups,
+model_1_m5 <- modelfit(data = dset_m5_train, fit_type = "SQ", groups = dset_m5_groups,
                        params = list(sdfilter = NULL))
 # LS just means LASSO
-model_2_m5 <- modelfit(data = dset_m5_train, dtype = "LS", groups = dset_m5_groups)
+model_2_m5 <- modelfit(data = dset_m5_train, fit_type = "LS", groups = dset_m5_groups)
 
-model_1_m510 <- modelfit(data = dset_m510_train, dtype = "SQ", groups = dset_m510_groups,
+model_1_m510 <- modelfit(data = dset_m510_train, fit_type = "SQ", groups = dset_m510_groups,
                 params = list(sdfilter = NULL))
-model_2_m510 <- modelfit(data = dset_m510_train, dtype = "LS", groups = dset_m510_groups)
+model_2_m510 <- modelfit(data = dset_m510_train, fit_type = "LS", groups = dset_m510_groups)
 message("  Done.")
 ```
 There is very little difference between the plots of the training and test set

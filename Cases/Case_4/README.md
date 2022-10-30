@@ -1,7 +1,7 @@
 ---
-title: "LLE: Case III"
+title: "LLE: Case IV"
 author: "Jason Orender"
-date: "2022-09-18"
+date: "2022-10-29"
 output: 
   html_document: 
     keep_md: yes
@@ -10,7 +10,7 @@ output:
 
 ## Introduction
 
-This document was created by running the "Case_3_markdown.Rmd" file in RStudio.
+This document was created by running the "Case_4_markdown.Rmd" file in RStudio.
 It utilizes the script files "functions.R", "rectify.R", and "collapse_limits.R",
 within the "Code" directory in this repository, which are used to define the
 functions that are called below.  This document will create all of the synthetic
@@ -22,33 +22,29 @@ of that document in order to stay within a ten page limit.
 
 ## Generate the Data
 
-The data generation script is in the file named "build_case_3_data.R".  It will
-generate three data sets: 1) dset, 2) dset_train, and 3) dset_test.  The "dset" 
-object is a consolidated data set, while the "dset_train" and "dset_test"
-objects are mutually exclusive subsets of "dset".  This document can be run as a notebook, block by block, or it can also be knitted into an html document if
+The data generation script is in the file named "build_case_4_data.R".  It will
+generate three data sets: 1) dset, 2) dset_train, and 3) dset_test.  The "dset"
+object is a consolidated data set, while "dset_train" and "dset_test" objects
+are mutually exclusive subsets of "dset".  This document can be run as a
+notebook, block by block, or it can also be knitted into an html document if
 desired.
 
 The "relevant" data is taken from curves 1, 2, 4, and 5.  They are marked
 "RELEVANT" in the chart title.  The plots generated from the next code block
-show 5 different curves, only 4 of which contain relevant data.  The other is
+show 15 different curves, only 4 of which contain relevant data.  The others are
 added to obfuscate the data and make the task of picking out the relevant
-features and time steps somewhat harder, but the total number of curves is kept
-low in this example in order to make the process more clear.  The next case is
-similar, but adds a significant number of non-relevant curves.  The red markers
-on the curves show the time steps for which all of the criteria for an event are
-met.  Each time step generates an example which includes the data from the ten
-time steps before.
+features and time steps somewhat harder.  The red markers on the curves show the
+time steps for which all of the criteria for an event are met.  Each time step
+generates an example which includes the data from the ten time steps before.
 
 The data generation script will produce a plot of the entire data set for each
 feature over each time step.  There are a large number of these plots, but the
-process for generation and the explanation of the results is located below.
-Note again that there are only five curves for this case in order to provide a
-simpler problem.  To change this, edit the "build_case_3_data.R" file. In order
-for this markdown to work correctly as written, the relevant curves would need
-to remain the same, but as many non-relevant curves as is desired can be added
-in without changing the details of the code.
+process for generation and the explanation of the results is located below. To
+change this, edit the "build_case_4_data.R" file. In order for this markdown to
+work correctly as written, the relevant curves would need to remain the same,
+but as many non-relevant curves as is desired can be added or subtracted without changing the details of the code.
 
-![](Case_3_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_3_markdown_files/figure-html/generate_data-5.png)<!-- -->
+![](Case_4_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-5.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-6.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-7.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-8.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-9.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-10.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-11.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-12.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-13.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-14.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-15.png)<!-- -->
 
 ## The data generation process
 
@@ -138,7 +134,7 @@ the relevant variables.
 
 ## Plot the Results
 
-The third case introduces a logical OR relationship between four variables of the form:
+The fourth case uses a logical OR relationship similar to case 3 between four variables of the form:
 
 <h5 align="center"><i>AB + CD = Z</i></h5>
 
@@ -167,11 +163,11 @@ distinctive pattern shown in the following plots.
 ```
 
 ```
-## Warning: package 'rlang' was built under R version 4.2.1
+## Loading required package: rlang
 ```
 
 ```
-## Loaded glmnet 4.1-4
+## Warning: package 'rlang' was built under R version 4.2.1
 ```
 
 ```
@@ -191,16 +187,20 @@ distinctive pattern shown in the following plots.
 ```
 
 The perfect classification of the positive examples and poor classification
-performance of the negative examples in both the training and test set is a
-distinctive relationship that occurs often when there is a logical 'OR'
-relationship present.  Once this is known, steps can be taken to make the
-additional computational investment of creating the different versions of the
-features that might exist with different critical ranges and then fitting the
-new larger (about 2 x size) data set.  
+performance of the negative examples in the training and near perfect
+classification for othe test set is a distinctive relationship that occurs often
+when there is a logical 'OR' relationship present.  Once this is known or
+suspected, steps can be taken to make the additional computational investment of
+creating additional versions of the features that might exist with different
+critical ranges and then fitting the new larger (sized two times plus) data set.  
 
 
 ```
 ## Plotting transformed data examples...
+```
+
+```
+## Loaded glmnet 4.1-4
 ```
 
 ```
@@ -214,41 +214,85 @@ new larger (about 2 x size) data set.
 ##     combine
 ```
 
-![](Case_3_markdown_files/figure-html/transformed_data_plots-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots-2.png)<!-- -->
+![](Case_4_markdown_files/figure-html/transformed_data_plots-1.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots-2.png)<!-- -->
 
 ```
 ##   Done.
 ```
 
 Without calculating the extra versions, the un-transformed data actually
-outperforms the transformed data.
+outperforms the transformed data, but not by much.
 
 
 ```
 ## Plotting un-transformed data examples...
 ```
 
-![](Case_3_markdown_files/figure-html/untransformed_data_plots-1.png)<!-- -->![](Case_3_markdown_files/figure-html/untransformed_data_plots-2.png)<!-- -->
+![](Case_4_markdown_files/figure-html/untransformed_data_plots-1.png)<!-- -->![](Case_4_markdown_files/figure-html/untransformed_data_plots-2.png)<!-- -->
 
 ```
 ##   Done.
 ```
 
-![](Case_3_markdown_files/figure-html/transformed_data_barplot-1.png)<!-- -->
+![](Case_4_markdown_files/figure-html/transformed_data_barplot-1.png)<!-- -->
 
-![](Case_3_markdown_files/figure-html/untransformed_data_barplot-1.png)<!-- -->
+![](Case_4_markdown_files/figure-html/untransformed_data_barplot-1.png)<!-- -->
 
-The computational advantage slightly reduced when the extra versions are
-calculated because the size of the new data set is essentially double that of
-the old one. However, the increase in performance in terms of the accuracy of
+The computational advantage is slightly reduced when the extra versions are
+calculated because the size of the new data set is essentially double-plus that
+of the old one. However, the increase in performance in terms of the accuracy of
 the model when compared to the non-transformed data is arguably worth expending
-the small amount of extra computational energy to produce the much better
+the small-ish amount of extra computational energy to produce the much better
 results. The next plots show the success of the fit against the test set with
-the extra versions calculated.
+the extra versions calculated.  The procedure that was followed, which seems to
+yield generally good results, is repeatedly running the algorithm that
+calculates the extra versions and fits the model until there are no more false-
+positives in the training set, then run the algorithm using the development set
+instead of the training set, and then finally run the algorithm on the training
+set again until there are no more false-positive results.
 
 
 ```
 ## Fitting a new model with additional feature versions that *might* exist...
+```
+
+```
+## 
+##   Running model through
+```
+
+```
+## 1 2 3 4
+```
+
+```
+## times
+##       +
+```
+
+```
+## 1 2 3
+```
+
+```
+## Nothing to do.
+```
+
+```
+##  times throught the devset
+##       +
+```
+
+```
+## 1 2 3
+```
+
+```
+## Nothing to do.
+```
+
+```
+## more times through the training set.
 ```
 
 ```
@@ -258,30 +302,27 @@ the extra versions calculated.
 It is clear from the performance of the new models trained with extra versions
 of each feature that would exist if a logical 'OR' relationship existed that
 there is a significant performance boost when the new versions of each feature
-with different critical ranges are created. The Figures below show the training
-and test sets when applied to the model created with the limited number of extra
-versions, and the performance advantage over the LASSO applied to the original
-continuous data is profound.
+with different critical ranges are created. The Figures below show the training,
+development, and test sets when applied to the model created with the limited
+number of extra versions, and the performance advantage over the LASSO applied
+to the original continuous data is profound.
 
-![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->
+![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->![](Case_4_markdown_files/figure-html/transformed_data_plots_ev-3.png)<!-- -->
 
 The LASSO results with the unmodified continuous data shown above indicate that
-while there is definitely a relationship, the difficulty in creating a model in
-which multiple features within the same data set can independently cause the
-same result is evident. 
+while there is definitely a relationship, it is not very precise and the the
+difficulty in creating a model in which multiple features within the same data
+set can independently cause the same result is evident. 
 
-![](Case_3_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
+![](Case_4_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
 
-The previous plot shows that two out of the four relevant curves are adequately
-identified as having nonzero coefficients that stand out.  The reason that only
-two are identified is that in this case, the the results can be completely
-described by those two features alone.  They occlude the other features, since
-there are no examples in which the remaining features are needed to explain.  It
-is notable that even though the remaining features are occluded by the first
-two, they still introduced a great deal of error in the standard LASSO, as well
-as the LASSO on the modified data without the extra versions of the features.
-
-
-
-
+Unlike case 3, this set of coefficients is considerably noisier.  It is worth
+pointing out that the truly relevant features and time steps *are* indicated,
+but at least half are indistinguishable from the noise at this point. The
+success of this method hinges on whether there is enough information to
+accurately define the true critical ranges of the features present, and each
+additional set of non-relevant data causes this burden to incrementally rise.
+As more data is analyzed, however, the more clear the result will become,
+allowing a steady removal of non-relevant features, until only the relevant ones
+are left.
 

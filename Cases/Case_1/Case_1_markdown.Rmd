@@ -155,8 +155,8 @@ The first case is a longitudinal data problem in which the following specific ch
 
 ```{r fit_models, echo=FALSE}
 message("Detecting groups...")
-dstruct     <- organize(dset_train)
-dset_groups <- dstruct$groups
+data_struct <- organize(dset_train)
+dset_groups <- data_struct$groups
 message("  Done.")
 
 # This code block uses a specialized routine called "modelfit" which is a
@@ -164,10 +164,10 @@ message("  Done.")
 # to simplify the interface and make the code more succinct.
 message("Fitting Models...")
 # SQ means square rectified, which is a LASSO run on transformed data
-model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups,
+model_1 <- modelfit(data = dset_train, fit_type = "SQ", groups = dset_groups,
                 params = list(sdfilter = NULL))
 # LS just means LASSO
-model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
+model_2 <- modelfit(data = dset_train, fit_type = "LS", groups = dset_groups)
 message("  Done.")
 ```
 The next plots, which show the results of the model fit plotted against the

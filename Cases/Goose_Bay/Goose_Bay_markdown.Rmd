@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-09-25"
+date: "2022-10-29"
 output: 
   html_document: 
     keep_md: yes
@@ -115,12 +115,12 @@ message("  Done.")
 # generalized routine that fits data to a specified model type.  It was made
 # to simplify the interface and make the code more succinct.
 message("Fitting Models...")
-ion_sq_fit <- modelfit(data = ion_train, exclude = exclude, resp = resp,
-                       dtype = "SQ", groups = ion_groups,
+ion_sq_fit <- modelfit(data = ion_train, exclude = exclude, response = resp,
+                       fit_type = "SQ", groups = ion_groups,
                        params = list(sdfilter=NULL))
 # Fitting the LASSO on the untransformed data
-ion_ls_fit <- modelfit(data = ion_train, dtype = "LS", exclude = exclude,
-                       resp = resp, groups = ion_groups)
+ion_ls_fit <- modelfit(data = ion_train, fit_type = "LS", exclude = exclude,
+                       response = resp, groups = ion_groups)
 message("  Done.")
 ```
 The LASSO with transformed data (shown immediately below) again exceeded the
@@ -129,10 +129,10 @@ figures for the transformed data) and nearly matched the neural network that was
 specifically tuned and used to analyze the data in the original paper.
 
 ```{r transformed_data_plots, echo=FALSE}
-hpos <- 0.4
+hpos <- 0.6
 plot(ion_sq_fit, title = "Goose Bay Training Set (transformed data)", h=.5,
      cx = hpos)
-plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos,
+plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos, cy = .55,
      title = "Goose Bay Testing Set (transformed data)")
 ```
 
@@ -153,7 +153,7 @@ beta1   <- ion_sq_fit$model$beta[,]
 markers <- rep(0,length(beta1))
 
 par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", las = 2)
+barplot(beta1, border = "blue", col = "blue", las = 2, main = "Coefficients from Transformed Data")
 ```
 
 The coefficient for the LASSO solution on the un-transformed data (see below),
@@ -165,6 +165,6 @@ beta1   <- ion_ls_fit$model$beta[,]
 markers <- rep(0,length(beta1))
 
 par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", las = 2)
+barplot(beta1, border = "blue", col = "blue", las = 2, main = "Coefficients from Un-Transformed Data")
 ```
 

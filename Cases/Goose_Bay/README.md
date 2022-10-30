@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-10-29"
 output: 
   html_document: 
     keep_md: yes
@@ -61,14 +61,6 @@ function resulting from the complex electromagnetic signal."
 ##   Done.
 ```
 
-```
-## Transforming the data...
-```
-
-```
-##   Done.
-```
-
 ## Studying the Goose Bay Data
 
 
@@ -77,11 +69,11 @@ function resulting from the complex electromagnetic signal."
 ```
 
 ```
-## Warning: package 'rlang' was built under R version 4.2.1
+## Loading required package: rlang
 ```
 
 ```
-## Loaded glmnet 4.1-4
+## Warning: package 'rlang' was built under R version 4.2.1
 ```
 
 ```
@@ -104,6 +96,10 @@ performance the LASSO with the original un-transformed data (shown below the
 figures for the transformed data) and nearly matched the neural network that was
 specifically tuned and used to analyze the data in the original paper.
 
+
+```
+## Loaded glmnet 4.1-4
+```
 
 ```
 ## 

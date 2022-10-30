@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case IV"
 author: "Jason Orender"
-date: "2022-09-18"
+date: "2022-10-29"
 output: 
   html_document: 
     keep_md: yes
@@ -144,7 +144,7 @@ the relevant variables.
 # as well as create a set of generalized code that might be useful to others.
 source("../../Code/functions.R")
 source("../../Code/rectify.R")
-source("../../Code/collapse_limits_.R")
+source("../../Code/collapse_limits.R")
 ```
 
 ## Plot the Results
@@ -172,9 +172,9 @@ message("  Done.")
 message("Fitting Models...")
 # SQ means square rectified, which is a LASSO run on transformed data
 message("Fitting initial models...")
-model_1 <- modelfit(data = dset_train, dtype = "SQ", groups = dset_groups)
+model_1 <- modelfit(data = dset_train, fit_type = "SQ", groups = dset_groups)
 # LS just means LASSO
-model_2 <- modelfit(data = dset_train, dtype = "LS", groups = dset_groups)
+model_2 <- modelfit(data = dset_train, fit_type = "LS", groups = dset_groups)
 message("  Done.")
 ```
 
@@ -288,17 +288,17 @@ model_1a <- model_1
 cat("\n  Running model through ")
 for (i in 1:4) {
   cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, nzones=4)
+  model_1a <- collapse_limits(model_1a, nzones = 4)
 }
 cat("times\n      + ")
 for (i in 1:3) {
   cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, devset = dset_dev, nzones=4)
+  model_1a <- collapse_limits(model_1a, devset = dset_dev, nzones = 4)
 }
 cat(" times throught the devset\n      + ")
 for (i in 1:3) {
   cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, nzones=4)
+  model_1a <- collapse_limits(model_1a, nzones = 4)
 }
 cat("more times through the training set.\n\n")
 message("  Done.")
@@ -364,10 +364,11 @@ axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 
 Unlike case 3, this set of coefficients is considerably noisier.  It is worth
 pointing out that the truly relevant features and time steps *are* indicated,
-but they are indistinguishable from the noise at this point. The success of this
-method hinges on whether there is enough information to accurately define the
-true critical ranges of the features present, and each additional set of non-
-relevant data causes this burden to incrementally rise.  As more data is
-analyzed, however, the more clear the result will become, allowing a steady
-removal of non-relevant features, until only the relevant ones are left.
+but at least half are indistinguishable from the noise at this point. The
+success of this method hinges on whether there is enough information to
+accurately define the true critical ranges of the features present, and each
+additional set of non-relevant data causes this burden to incrementally rise.
+As more data is analyzed, however, the more clear the result will become,
+allowing a steady removal of non-relevant features, until only the relevant ones
+are left.
 

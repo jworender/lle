@@ -116,7 +116,7 @@ Case Study  | Type           | Transformed (TP/FP)  | Un-Transformed (TP/FP)  |
 #1          | Synthetic Data | 97.8% / 0.0%         | 85.3% / 2.1%            |
 #2          | Synthetic Data | 97.7% / 2.5%         | 82.8% / 2.4%            |
 #3          | Synthetic Data | 99.5% / 0.0%         | 71.4% / 6.5%            |
-#4          | Synthetic Data | 86.9% / 3.8%         | 47.6% / 7.1%            |
+#4          | Synthetic Data | 91.6% / 3.1%         | 47.6% / 7.1%            |
 GB          | Real Data Set  | 97.3% / 11.9%        | 93.3% / 23.8%           |
 
 The effectiveness of the method described here is demonstrated by case studies

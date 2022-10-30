@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case II"
 author: "Jason Orender"
-date: "2022-08-20"
+date: "2022-08-28"
 output: 
   html_document: 
     keep_md: yes
@@ -23,11 +23,11 @@ document in order to stay within a ten page limit.
 ## Generate the Data
 
 The data generation script is in the file named "build_case_2_data.R".  It will
-generate nine files: 1) dset, 2) dset_train, 3) dset_test, 4) dset_m5,
+generate nine data sets: 1) dset, 2) dset_train, 3) dset_test, 4) dset_m5,
 5) dset_m5_train, 6) dset_m5_test, 7) dset_m510, 8) dset_m510_train, and
-9) dset_m510_test, .  The "dset" files are consolidated data sets, and
-"dset_train" and "dset_test" files are mutually exclusive subsets of the "dset"
-files.  The "m5" and "m510" qualifiers indicate that the data is missing curve
+9) dset_m510_test, .  The "dset" objects are consolidated data sets, and
+"dset_train" and "dset_test" objects are mutually exclusive subsets of the "dset"
+objects.  The "m5" and "m510" qualifiers indicate that the data is missing curve
 #5 (m5 = "minus 5") or missing curves #5 and #10 (m510 = "minus 5 and 10"). This
 document can be run as a notebook, block by block, or it can also be knitted
 into an html document if desired.
@@ -158,11 +158,11 @@ answer fidelity when not all relevant variables are present. The following speci
 ```
 
 ```
-## Warning: package 'rlang' was built under R version 4.2.1
+## Loading required package: rlang
 ```
 
 ```
-## Loaded glmnet 4.1-4
+## Warning: package 'rlang' was built under R version 4.2.1
 ```
 
 ```
@@ -191,6 +191,10 @@ training set, there is a considerably greater effect.
 
 ```
 ## Plotting transformed data examples...
+```
+
+```
+## Loaded glmnet 4.1-4
 ```
 
 ```

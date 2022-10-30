@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case I"
 author: "Jason Orender"
-date: "2022-08-20"
+date: "2022-08-28"
 output: 
   html_document: 
     keep_md: yes
@@ -23,10 +23,10 @@ document in order to stay within a ten page limit.
 ## Generate the Data
 
 The data generation script is in the file named "build_case_1_data.R".  It will
-generate three files: 1) dset, 2) dset_train, and 3) dset_test.  The "dset" file
-is a consolidated data set, and "dset_train" and "dset_test" files are mutually
-exclusive subsets of "dset".  This document can be run as a notebook, block by
-block, or it can also be knitted into an html document if desired.
+generate three data sets: 1) dset, 2) dset_train, and 3) dset_test.  The "dset"
+object is a consolidated data set, and "dset_train" and "dset_test" objects are
+mutually exclusive subsets of "dset".  This document can be run as a notebook,
+block by block, or it can also be knitted into an html document if desired.
 
 The "relevant" data is taken from curves 5, 8, 9, 10, 13, 25, and 30.  They are
 marked "RELEVANT" in the chart title.  The plots generated from the next code
@@ -153,11 +153,11 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
-## Warning: package 'rlang' was built under R version 4.2.1
+## Loading required package: rlang
 ```
 
 ```
-## Loaded glmnet 4.1-4
+## Warning: package 'rlang' was built under R version 4.2.1
 ```
 
 ```
@@ -183,6 +183,10 @@ into a binary format using the previous procedure.
 
 ```
 ## Plotting transformed data examples...
+```
+
+```
+## Loaded glmnet 4.1-4
 ```
 
 ```
