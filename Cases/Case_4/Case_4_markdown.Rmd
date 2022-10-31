@@ -370,5 +370,6 @@ accurately define the true critical ranges of the features present, and each
 additional set of non-relevant data causes this burden to incrementally rise.
 As more data is analyzed, however, the more clear the result will become,
 allowing a steady removal of non-relevant features, until only the relevant ones
-are left.
+are left.  The improvements in model performance seem to significantly precede
+any additional clarity in the analysis of coefficient magnitudes.
 

@@ -384,6 +384,6 @@ axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 
 The more missing data there is, the greater the level of noise in the final
 result.  While this is inconvenient, it is also a reliable indicator regarding
-that there might be an under- or un-represented causative factor in the data,
+whether there might be an under- or un-represented causative factor in the data,
 perhaps leading an investigator to continue searching for new features to
 achieve a sparse return similar to Fig. 13.

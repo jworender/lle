@@ -42,7 +42,7 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
                      response = "INDC", fit_type = "SQ", groups = NULL,
                      params = NULL, verbose = FALSE) {
 
-  if (!require(rlang)) {
+  if (!require(rlang) | !require(gglasso) | !require(randomForest)) {
     message("ERROR! Proper packages not installed.")
     return(NULL)
   }
@@ -121,10 +121,26 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
     modeler <- randomForest::randomForest
     # set explicitly provided parameters
     mparams <- list(x = tdata[,fit_features],
-                    y = as.logical(data.frame(tdata)[, resp]),
+                    y = as.logical(data.frame(tdata)[, response]),
                     importance = TRUE)
     # the "zparams" defaults can be overridden
     zparams <- list(mtry = ceiling(sqrt(length(fit_features))))
+  }
+  else if ((fit_type == "GL")) {
+    # use feature column names as the default feature list
+    if (is.null(fit_features)) fit_features <- feats
+    modeler <- gglasso::gglasso
+    # set explicitly provided parameters
+    v.group <- rep(0,length(feats)) %n% feats
+    for (i in 1:length(groups)) {
+      v.group[groups[[i]]] <- rep(i,length(groups[[i]]))
+    }
+    mparams <- list(x = as.matrix(tdata[,fit_features]),
+                    y = as.numeric(data.frame(tdata)[,response]),
+                    group = v.group)
+    # the "zparams" defaults can be overridden
+    zparams <- list( loss = "ls", intercept = FALSE)
+    
   }
   else {
     message("ERROR! The fit_type is invalid!")
@@ -193,18 +209,19 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
   
   # perform post-processing for known model types
   if ((fit_type == "LR") | (fit_type == "LS") | (fit_type == "RR") |
-      (fit_type == "SQ")) {
+      (fit_type == "SQ") | (fit_type == "GL")) {
     # eliminating the unused lambdas
-    nbest           <- which(model$lambda == min(model$lambda))
-    model$a0        <- model$a0[nbest]
-    model$beta      <- matrix(model$beta[,nbest], nrow = dim(model$beta)[1],
-                              dimnames = list(rownames(model$beta),
-                                              colnames(model$beta)[nbest]))
-    model$df        <- model$df[nbest]
-    model$dim[2]    <- 1
-    model$lambda    <- model$lambda[nbest]
-    model$dev.ratio <- model$dev.ratio[nbest]
-    
+    if (fit_type != "GL") {
+      nbest           <- which(model$lambda == min(model$lambda))
+      model$a0        <- model$a0[nbest]
+      model$beta      <- matrix(model$beta[,nbest], nrow = dim(model$beta)[1],
+                                dimnames = list(rownames(model$beta),
+                                                colnames(model$beta)[nbest]))
+      model$df        <- model$df[nbest]
+      model$dim[2]    <- 1
+      model$lambda    <- model$lambda[nbest]
+      model$dev.ratio <- model$dev.ratio[nbest]
+    }
     fit_features <- as.numeric(model$beta[,1])
     names(fit_features) <- rownames(model$beta)
     fit_features <- sort(fit_features, decreasing = TRUE)
@@ -327,85 +344,16 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
     }
   }
   
-  if      (dtype == "LR")
-    mfeats <- names(model$coefficients)[-1]
-  else if (dtype == "NN")
-    mfeats <- model$model.list$variables
-  else if ((dtype == "LS") | (dtype == "LRGD") | (dtype == "SQ") |
-           (dtype == "RR"))
+  if ((dtype == "LS") | (dtype == "LR") | (dtype == "SQ") |
+      (dtype == "RR") | (dtype == "GL"))
     mfeats <- rownames(model$beta)[model$beta[,1] != 0]
   else if (dtype == "RF")
     mfeats <- rownames(model$importance)
-  else if ((dtype == "MEAN") | (dtype == "XGB"))
-    mfeats <- model$feats
   else
     mfeats <- model$feats
   
-  if (any(grepl("::", dtype))) {
-    pkg    <- strsplit(dtype, "::", fixed = TRUE)[[1]][1]
-    func   <- strsplit(dtype, "::", fixed = TRUE)[[1]][2]
-    # looking to see if there is a set of example prediction parameters
-    # embedded within the model
-    if (!is.null(model$predict_params)) params <- model$predict_params
-    else                                params <- list(genMat(nrow = 2, ncol = 2))
-    isdata <- unlist(lapply(params, FUN = function(x)
-      (is.matrix(x) | is.data.frame(x))))
-    if (is.null(mfeats)) params[[which(isdata)[1]]] <- data
-    else                 params[[which(isdata)[1]]] <- data[,mfeats]
-    # if there is not a specific set of example prediction parameters,
-    # assuming that just using the model as the first parameter and the
-    # data as the second will work - it should work in most cases
-    pred <- as.numeric(do.call(predict, args = c(list(model), params)))
-  }
-  else if (dtype == "LR") {
-    if (!require("stats")) {
-      message("The 'stats' package must be installed to use this function.")
-      return(NULL)
-    }
-    # if this is a list of models, assume that the mean is meant to be
-    # taken of the results for all listed models several legacy models
-    # are constructed this way
-    if (is.list(model) & is.null(model$coefficients)) {
-      pred <- NULL
-      n    <- 0
-      for (i in 1:length(model)) {
-        if (is.null(model[[i]]$supermodel)) {
-          # legacy supermodels are not supported - ensembles are a
-          # much better way to accomplish this task, and the
-          # subordinate legacy models can be easily transformed
-          # into an ensemble model object
-          if (is.null(pred))
-            pred <- predict(model[[i]], newdata = data,
-                            type = "response")
-          else
-            pred <- pred + predict(model[[i]], newdata = data,
-                                   type = "response")
-          n <- n + 1
-        }
-      }
-      pred <- pred / n
-    }
-    else
-      pred <- predict(model, newdata = data, type = "response")
-    names(pred) <- as.character(1:length(pred))
-  }
-  else if (dtype == "NN") {
-    if (!require("neuralnet")) {
-      message("The 'neuralnet' package must be installed to use this function.")
-      return(NULL)
-    }
-    pred <- tryCatch({
-      compute(model, data)
-    },
-    error = function(cond) {
-      return(NA)
-    })
-    if (any(is.na(pred))) return(NA)
-    pred <- as.numeric(pred$net.result)
-    names(pred) <- as.character(1:length(pred))
-  }
-  else if ((dtype == "LS")  | (dtype == "LRGD") | (dtype == "SQ") |
-           (dtype == "RR")) {
+  if ((dtype == "LS") | (dtype == "LR") | (dtype == "SQ") |
+      (dtype == "RR") | (dtype == "GL")) {
     if (!require("glmnet")) {
       message("The 'glmnet' package must be installed to use this function.")
       return(NULL)
@@ -430,7 +378,11 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
     }
     
     if (all(featnames %in% colnames(data)) & (length(featnames) > 0)) {
-      pred <- as.numeric(predict(model, newx = as.matrix(data[,featnames]),
+      if (dtype == "GL") 
+        pred <- as.numeric(predict(model, newx = as.matrix(data[,rownames(model$beta)]),
+                                   s = best_lambda))
+      else 
+        pred <- as.numeric(predict(model, newx = as.matrix(data[,featnames]),
                                  type = "response", s = best_lambda))
       names(pred) <- as.character(1:length(pred))
     }
@@ -464,50 +416,6 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
     
     pred <- as.numeric(predict(model, data, type = "response"))
     names(pred) <- as.character(1:length(pred))
-  }
-  else if (dtype == "RM") {
-    # extracting the parameters
-    nbins     <- model$params$nbins
-    rg        <- model$range
-    binsize   <- (rg[2] - rg[1])/(nbins - 1)
-    conv      <- model$conv
-    off       <- model$off
-    conv_data <- as.numeric(data[,model$rule_variables[2]])
-    conv_bins <- floor((conv_data - rg[1])/binsize)+1
-    conv_bins[conv_data <= rg[1]] <- 0
-    conv_bins[conv_data >= rg[2]] <- nbins-1
-    off_data  <- as.numeric(data[,model$rule_variables[1]])
-    off_bins  <- floor((off_data - rg[1])/binsize)+1
-    off_bins[off_data <= rg[1]] <- 0
-    off_bins[off_data >= rg[2]] <- nbins-1
-    # using the latest time step as the basis for the prediction vector
-    pred <- conv_data
-    # calculating the prediction vector
-    for (i in 1:nbins) {
-      off_i   <- as.numeric(off[i,])
-      idx_vec <- which((conv_bins+1)==i)
-      pred[idx_vec] <-
-        conv[i] + off_i[off_bins[idx_vec]+1]
-    }
-    pred[pred < rg[1]] <- rg[1]
-    pred[pred > rg[2]] <- rg[2]
-    names(pred) <- as.character(1:length(pred))
-  }
-  else if (isTRUE(model$dtype == "XGB")) {
-    
-    if (!require("xgboost")) {
-      message("The 'xgboost' package must be installed to use this function.")
-      return(NULL)
-    }
-    
-    pred <- predict(model, as.matrix(data[,model$feature_names]))
-    pred <- pred/max(pred)
-    pred %idx% 1
-  }
-  else if ((dtype == 5) | (dtype == "MEAN")) {
-    if (length(mfeats) > 1) pred <- (rowMeans(data[,mfeats], na.rm = TRUE))
-    else                    pred <- data[,mfeats]
-    pred %idx% 1
   }
   else if (dtype != -1)
   { message("ERROR! Model type not supported"); return(NA) }

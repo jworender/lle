@@ -126,7 +126,11 @@ message("  Done.")
 The LASSO with transformed data (shown immediately below) again exceeded the
 performance the LASSO with the original un-transformed data (shown below the
 figures for the transformed data) and nearly matched the neural network that was
-specifically tuned and used to analyze the data in the original paper.
+specifically tuned and used to analyze the data in the original paper.  Note
+also the similar training and testing results for the transformed data, while
+there is a large disparity between the training and testing results for the un-
+transformed data.  This is an example of how the transformed data resists
+overfitting.
 
 ```{r transformed_data_plots, echo=FALSE}
 hpos <- 0.6

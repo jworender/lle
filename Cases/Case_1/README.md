@@ -153,11 +153,54 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
+## Fit SQ
+```
+
+```
+## ##------ Sun Oct 30 18:41:25 2022 ------##
+```
+
+```
 ## Loading required package: rlang
 ```
 
 ```
 ## Warning: package 'rlang' was built under R version 4.2.1
+```
+
+```
+## Loading required package: gglasso
+```
+
+```
+## Warning: package 'gglasso' was built under R version 4.2.1
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## Warning: package 'randomForest' was built under R version 4.2.1
+```
+
+```
+## randomForest 4.7-1.1
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
 ```
 
 ```
@@ -170,6 +213,18 @@ The first case is a longitudinal data problem in which the following specific ch
 
 ```
 ## Linking to: OpenSSL 1.1.1k  25 Mar 2021
+```
+
+```
+## Fit LS
+```
+
+```
+## ##------ Sun Oct 30 18:41:28 2022 ------##
+```
+
+```
+## ##------ Sun Oct 30 18:41:41 2022 ------##
 ```
 
 ```
@@ -192,6 +247,12 @@ into a binary format using the previous procedure.
 ```
 ## 
 ## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     combine
 ```
 
 ```
@@ -228,6 +289,398 @@ performance computing (HPC) setting.
 ```
 ##   Done.
 ```
+The reason that LASSO was chosen for the discrimination algorithm is that it by
+its very nature produces sparse feature sets.  For the sake of completeness,
+however, here are a few alternate modeling schemes (bearing in mind that this is
+the absolute simplest case submitted for review).
+
+A decision-tree algorithm should theoretically do well with this data, but one
+of the major disadvantages to these model types is overfitting to non-relevant
+data and the excessive computational load required for large data sets.  This
+training data set consists of 3,437 examples, which is not large and may be
+considered small in some contexts, yet the fitting for Random Forest took 86
+seconds, while on the same machine fitting the LASSO to the square-rectified
+data (including the process of rectifying the data) took about two seconds.  The
+results are superior to the standard LASSO performed on un-transformed data, but
+still fall short of the LASSO performed on the transformed data.
+
+Fitting a Random Forest model to a rectified version of the data, as might be
+expected, yields a better fit.  However, the performance of the Random Forest
+fit is still inferior to that of the LASSO fit on transformed data, and the
+fitting process took a considerably longer 25 seconds on the same machine as the
+other two runs (which puts it at ~10x the execution time).
+
+
+```r
+message("Fitting Random Forest model...")
+```
+
+```
+## Fitting Random Forest model...
+```
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:41:42 2022 ------##
+```
+
+```r
+model_rf <- modelfit(data = dset_train, fit_type = "RF", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:43:09 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting un-transformed data examples...")
+```
+
+```
+## Plotting un-transformed data examples...
+```
+
+```r
+plot(model_rf, title = "Case #1 Training Set (Random Forest no transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+```r
+plot(model_rf, title = "Case #1 Test Set (Random Forest no transformation)",
+     data = dset_test, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:43:10 2022 ------##
+```
+
+```r
+dset_train_SQ <- rectify(dset_train, groups = dset_groups)
+dset_test_SQ  <- rectify(dset_test, groups = dset_groups,
+                         limits = dset_train_SQ$limits)
+model_rf <- modelfit(data = dset_train_SQ$data, fit_type = "RF", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:43:34 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting transformed data examples...")
+```
+
+```
+## Plotting transformed data examples...
+```
+
+```r
+plot(model_rf, title = "Case #1 Training Set (Random Forest with transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
+plot(model_rf, title = "Case #1 Test Set (Random Forest with transformation)",
+     data = dset_test_SQ$data, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
+As mentioned in the paper, the group lasso was also intended to fit categorical
+variables using data sets which have features that are related or dependent.
+As seen below, however, the results on this particular type of problem are
+actually worse than even just a standard LASSO by a large margin.  In addition,
+the fitting process itself took 107 seconds on the same hardware used to
+benchmark the other methods, which is considerably longer than *any* of the
+other methods.  The sorted results also have a peculiar and irregular shape when
+compared to the other methods.
+
+
+```r
+message("Fitting Group LASSO model...")
+```
+
+```
+## Fitting Group LASSO model...
+```
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:43:35 2022 ------##
+```
+
+```r
+model_gl <- modelfit(data = dset_train, fit_type = "GL", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:45:24 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting un-transformed data examples...")
+```
+
+```
+## Plotting un-transformed data examples...
+```
+
+```r
+plot(model_gl, title = "Case #1 Training Set (Group LASSO no transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+plot(model_gl, title = "Case #1 Test Set (Group LASSO no transformation)",
+     data = dset_test, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:45:24 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:45:24 2022 ------##
+```
+
+```r
+# rectifying again to show an accurate time estimate which includes rectification
+dset_train_SQ <- rectify(dset_train, groups = dset_groups)
+dset_test_SQ  <- rectify(dset_test, groups = dset_groups,
+                         limits = dset_train_SQ$limits)
+model_gl <- modelfit(data = dset_train_SQ$data, fit_type = "GL", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:46:01 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting transformed data examples...")
+```
+
+```
+## Plotting transformed data examples...
+```
+
+```r
+plot(model_gl, title = "Case #1 Training Set (Group LASSO with transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+plot(model_gl, title = "Case #1 Test Set (Group LASSO with transformation)",
+     data = dset_test_SQ$data, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+
+Another common choice in a situation like this with a large number of highly
+correlated features is the Ridge Regression method.  In practice, these methods
+produce almost the same results on this data, except that it misidentified the
+correct time step on one of the weaker features (a feature that only affected
+the outcome of a handful of examples and was not required to fully describe any
+outcomes).  The time it took was comparable as well (~2 seconds using the same
+hardware as above).  In the future, it may be advantageous to use Ridge
+Regression as a an approximator with nearly the same fidelity since it has a
+closed form solution and may be easier to parallelize for use with high
+performance computation hardware. Comparing the two sets of plots, they look
+very similar but there are a few differentiating details.
+
+
+```r
+message("Fitting Ridge Regression model...")
+```
+
+```
+## Fitting Ridge Regression model...
+```
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:46:02 2022 ------##
+```
+
+```r
+model_rr <- modelfit(data = dset_train, fit_type = "RR", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:46:15 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting un-transformed data examples...")
+```
+
+```
+## Plotting un-transformed data examples...
+```
+
+```r
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression no transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
+plot(model_rr, title = "Case #1 Test Set (Ridge Regression no transformation)",
+     data = dset_test, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:46:15 2022 ------##
+```
+
+```r
+dset_train_SQ <- rectify(dset_train, groups = dset_groups)
+dset_test_SQ  <- rectify(dset_test, groups = dset_groups,
+                         limits = dset_train_SQ$limits)
+model_rr <- modelfit(data = dset_train_SQ$data, fit_type = "RR", groups = dset_groups)
+timestamp()
+```
+
+```
+## ##------ Sun Oct 30 18:46:17 2022 ------##
+```
+
+```r
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+message("Plotting transformed data examples...")
+```
+
+```
+## Plotting transformed data examples...
+```
+
+```r
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression with transformation)", h=.5,
+     cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+plot(model_rr, title = "Case #1 Test Set (Ridge Regression with transformation)",
+     data = dset_test_SQ$data, h=.5, cx = hpos)
+```
+
+![](Case_1_markdown_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
 
 The advantages of the transformation procedure go beyond the accuracy of the
 results and the reduced computational power.  The precision with which it can
