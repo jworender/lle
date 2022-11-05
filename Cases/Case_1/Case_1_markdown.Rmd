@@ -1,7 +1,8 @@
 ---
 title: "LLE: Case I"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-10-30
++"
 output: 
   html_document: 
     keep_md: yes
@@ -225,7 +226,7 @@ Fitting a Random Forest model to a rectified version of the data, as might be
 expected, yields a better fit.  However, the performance of the Random Forest
 fit is still inferior to that of the LASSO fit on transformed data, and the
 fitting process took a considerably longer 25 seconds on the same machine as the
-other two runs (which puts it at ~10x the execution time).
+other two runs (which puts it at ~10x the execution time of the LASSO).
 
 ```{r}
 message("Fitting Random Forest model...")

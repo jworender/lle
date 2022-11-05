@@ -36,18 +36,34 @@
 #'     assumption that there is no error in the readings).  If set to NULL,
 #'     no filter will be used. The default is three, which guarantees that at
 #'     least 99% of normally distributed data will be used.
-#' @param checkdata Whether to check for abnormalities in the data set (like
-#'     missing, NA, or NULL data).  The default is TRUE.
+#' @param diffs Add in the differences for each unique pair of features to the
+#'     data set.  This will allow modeling based on relative differences between
+#'     the features.
+#' @param ratios Add in the ratios for each unique pair of features to the data
+#'     set.  This will also allow modeling based on relative differences, but
+#'     may capture nonlinear behavior.
+#' @param addrev Add a set of reversed data values, so when a -1 appears in the
+#'     regular data set a 1 will appear and vice-versa.  If there is just an
+#'     'AND' relationship between the features, this will be superfluous since
+#'     the reverse is just accounted for by a negative coefficient. However,
+#'     if an 'OR' relationship is present, there may well be a situation where
+#'     both the original feature and its reverse are needed to get a good fit.
+#' @param cdata If fitting categorical data (i.e. integers without a continuous
+#'     relationship), set this character vector to the feature names of the
+#'     categorical columns.
 #' @param verbose A logical which determines whether informational messages
 #'     are displayed to the console.
 #' @export
 rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                     groups = NULL, dfilter = NULL, sdfilter = NULL,
-                    verbose = FALSE) {
+                    diffs = FALSE, ratios = FALSE, addrev = FALSE,
+                    cdata = NULL, verbose = FALSE, ilcats = NULL) {
 
     # excluding named columns
-    cnames <- colnames(data)
-    cnames <- cnames[!(cnames %in% exclude)]
+    odata   <- data
+    ogroups <- groups
+    cnames  <- colnames(odata)
+    cnames  <- cnames[!(cnames %in% exclude)]
     # extract the features minus the indicator variable
     if (!is.null(resp)) feats <- cnames[cnames != resp]
     else                feats <- cnames
@@ -63,6 +79,38 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
         # not the case, the groups need to be supplied by the calling function.
         groups     <- datastruct$groups
     }
+    
+    # adding combinations that must be derived before transformation
+    
+    # diffs
+    if (diffs) {
+      for (i in 1:(length(feats)-1)) {
+        fbegin <- colnames(data)
+        for (j in (i+1):length(feats)) {
+          nfname <- paste0(feats[i],"_D_",feats[j])
+          data[,nfname] <- data[,feats[i]] - data[,feats[j]]
+          if ((feats[i] %in% cdata) & (feats[j] %in% cdata)) {
+            # if both features are categorical, then the difference is also
+            # categorical
+            cdata <- c(cdata, nfname)
+          }
+        }
+        # add to the groups
+        groups[[feats[i]]] <- colnames(data)[!(colnames(data) %in% fbegin)]
+      }
+    }
+    
+    # ratios
+    if (ratios) {
+      for (i in 1:length(feats)) {
+        for (j in (i+1):length(feats)) {
+          data[,paste0(feats[i],"_R_",feats[j])] <-
+            data[,feats[i]] / data[,feats[j]]
+        }
+      }
+    }
+    
+    # determining the critical ranges
 
     # the lim_return list will contain the limits associated with each feature
     # to be returned with the final data structure
@@ -78,24 +126,49 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
     # creating a copy of the data set that will ultimately be revised and
     # returned as the new, transformed data set
     dset_new <- data[,c(feats, resp)]
-    # iterate through each group separately
-    for (j in 1:length(groups)) {
+    # initialize the list of categorical columns
+    lcats <- list()
+    # iterate through each group separately - the groups will expand if there
+    # is categorical data, so using a frozen version of the groups to iterate
+    igroups <- groups
+    for (j in 1:length(igroups)) {
         # lim is the list of limits for each feature within a specific group
         lim   <- list()
-        # the sensitivity for each time step
-        vsens <- NULL
-        # iterate throught the individual features within each group
-        for (i in 0:(length(groups[[j]])-1)) {
+        # iterate through the individual features within each group
+        for (i in 0:(length(igroups[[j]])-1)) {
             # identifying the group by name so that if the order of the limits
             # or groups changes for any reason, the correct limits applies
             # to the group selected
-            gp <- names(groups)[j]
-            # similarly for the time step
-            ts <- groups[[gp]][length(groups[[gp]])-i]
+            gp <- names(igroups)[j]
+            # similarly for the feature (may be a time step)
+            ts <- igroups[[gp]][length(igroups[[gp]])-i]
             # if the limits are not supplied, it is understood that the
             # function will find them for each feature - this would be for
             # model training
-            if (is.null(limits)) {
+            if (ts %in% cdata) {
+               # processing categorical data
+               if (!is.null(ilcats))
+                 cats <- ilcats[[paste0(ts,".cats")]][paste0(ts,".",
+                                 1:length(ilcats[[paste0(ts,".cats")]]))]
+               else 
+                 cats <- unique(data[,ts])
+               lcats[[paste0(ts,".cats")]] <- cats
+               names(lcats[[paste0(ts,".cats")]]) <- paste0(ts,".",1:length(cats))
+               cat_lims <- list()
+               for (k in 1:length(cats)) {
+                 nfname <- paste0(ts,".",k)
+                 dset_new[,nfname] <- data[,ts] == cats[k]
+                 dset_new[,nfname][!dset_new[,nfname]] <- -1
+                 cat_lims[[nfname]] <- c(0.999,1.001)
+               }
+               lim[[paste0(ts,".cats")]] <- cat_lims
+               groups[[paste0(ts,".cats")]] <- paste0(ts,".",1:length(cats))
+               # removing the original feature since it is replaced by the one-
+               # hot encoded features
+               groups[[gp]] <- groups[[gp]][-which(groups[[gp]] == ts)]
+               dset_new     <- dset_new[,-which(colnames(dset_new) == ts)]
+             }
+            else if (is.null(limits)) {
                 # find out what the limits are and calculate a new response
                 # as if this feature were the only relevant one
                 p <- presp(measurement = as.numeric(data.frame(data)[,ts]),
@@ -103,8 +176,6 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                            response = as.logical(data.frame(data)[,resp]))
                 # record the new limits
                 lim[[ts]] <- p$limits
-                # record the sensitivity
-                vsens <- c(vsens, p$vsens)
                 # record the transformed column of the new data set
                 dset_new[,ts] <- p$vector
             }
@@ -118,8 +189,6 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                 p <- presp(measurement = data[,ts], sdfilter = sdfilter,
                            dfilter = dfilter, rmin = lim[[ts]][1],
                            rmax = lim[[ts]][2])
-                # record filler values for sensitivity
-                vsens <- c(vsens, 0)
                 # record the transformed column of the new data set
                 if (!any(is.na(p)) & (length(p) > 0))
                     dset_new[,ts] <- p$vector
@@ -127,17 +196,42 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                     dset_new[,ts] <- rep(-1, dim(dset_new)[1])
             }
         }
+        # all features in a group can be assumed to be either categorical or
+        # continuous, not a mix
+        if (!(ts %in% cdata)) { a <- lim; lim <- list(); lim[[gp]] <- a }
         # record this list of limits associated with each element to the master
         # list containing the limits for all groups
-        #names(lim)   <- groups[[j]]
-        lim_return[[j]]  <- lim
+        lim_return <- c(lim_return, lim)
+    }
+    # removing any zero-length groups (may occur if a group was entirely
+    # composed of categorical variables)
+    keep <- rep(TRUE,length(groups))
+    for (i in 1:length(groups))
+      if (length(groups[[i]]) == 0) keep[i] <- FALSE
+    groups <- groups[keep]
+    # adding combinations that must be derived after transformation
+    
+    # excluding named columns
+    cnames <- colnames(odata)
+    cnames <- cnames[!(cnames %in% exclude)]
+    # extract the features minus the indicator variable
+    if (!is.null(resp)) feats <- cnames[cnames != resp]
+    else                feats <- cnames
+    
+    #addrev
+    if (addrev) {
+      nset <- -dset_new[,unlist(groups)]
+      colnames(nset) <- paste0("n",unlist(groups))
+      dset_new <- cbind(dset_new,nset)
     }
 
     # return the data structure
     names(lim_return)  <- names(groups)
-    return(list(data = dset_new, original_data = data, groups = groups,
-                resp = resp, limits = lim_return, dfilter = dfilter,
-                sdfilter = sdfilter))
+    return(list(data = dset_new, original_data = odata, exclude = c(exclude,resp),
+                groups = ogroups, ngroups = groups, resp = resp, limits = lim_return,
+                dfilter = dfilter, sdfilter = sdfilter, cdata = cdata,
+                lcats = lcats, feats = feats, diffs = diffs, ratios = ratios,
+                addrev = addrev))
 }
 
 #' Project what the response would be if only this variable were relevant.
@@ -203,39 +297,25 @@ presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
         # an adjustable standard deviation filter to screen out outliers
         # if desired
         if (!is.null(sdfilter)) {
-            rdata <- rdata[(rdata > (mean(rdata) - sdfilter*sd(rdata))) &
-                           (rdata < (mean(rdata) + sdfilter*sd(rdata)))]
+          rdata <- rdata[(rdata > (mean(rdata) - sdfilter*sd(rdata))) &
+                         (rdata < (mean(rdata) + sdfilter*sd(rdata)))]
         }
-
+          
         if (is.null(dfilter)) {
-            if (length(rdata) == 0) {
-                rmin <- min(measurement)
-                rmax <- max(measurement)
-            }
-            else {
-                rmin  <- min(rdata)
-                rmax  <- max(rdata)
-            }
+          if (length(rdata) == 0) {
+            rmin <- min(measurement)
+            rmax <- max(measurement)
+          }
+          else {
+            rmin  <- min(rdata)
+            rmax  <- max(rdata)
+          }
         }
         else {
-            rg   <- dens2rg(rdata, dfilter)
-            rmin <- rg[1]
-            rmax <- rg[2]
+          rg   <- dens2rg(rdata, dfilter)
+          rmin <- rg[1]
+          rmax <- rg[2]
         }
-
-        # Calculating a sensitivity to this variable based on the complement of
-        # the fraction of the range occupied by the critical range.  The
-        # argument is that if most examples stay within the critical range of a
-        # variable almost all of the time and only occasionally drift out, it
-        # is a far less important variable to watch than one in which the
-        # critical range is a very small fraction of the total range for the
-        # variable.  If the variable starts to draw close to this critical range
-        # when fraction of the total range is low, it should cause a greater
-        # level of interest.
-        mdata <- measurement
-        tmin  <- min(mdata)
-        tmax  <- max(mdata)
-        vsens <- 1 - (rmax - rmin)/(tmax - tmin)
     }
     # calculating what the response would be if this measurement were the only
     # relevant one
@@ -245,6 +325,6 @@ presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
         retrn[(measurement >= rmin) & (measurement <= rmax)] <- 1
     }
 
-    return(list(vector = retrn, limits = c(rmin, rmax), vsens = vsens))
+    return(list(vector = retrn, limits = c(rmin, rmax)))
 
 }

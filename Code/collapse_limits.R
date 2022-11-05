@@ -24,10 +24,21 @@
 #' @export
 collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
                             exclude = "X") {
-  if (is.null(devset))  data <- obj$data[,-which(colnames(obj$data) %in%
-                                                   exclude)]
-  else                  data <- devset[,-which(colnames(devset) %in%
-                                                 exclude)]
+  
+  if (is.null(devset)) {
+    if (length(which(colnames(obj$data) %in% exclude)) > 0)
+      data <- obj$data[,-which(colnames(obj$data) %in% exclude)]
+    else
+      data <- obj$data
+  }
+  else {
+    if (length(which(colnames(devset) %in% exclude)) > 0)
+      data <- devset[,-which(colnames(devset) %in% exclude)]
+    else
+      data <- devset
+  }
+  # ensuring input data is in data frame form
+  data <- data.frame(data)
   
   data_pred <- modfunc(obj$model, data = data, rescale = c(0,1))
   resp <- as.logical(data[,obj$response])
@@ -64,10 +75,10 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   names(pos_maxs) <- feats
   # setting up the difference data frame
   fps_df    <- rbind(data.frame(matrix(c(0,pos_mins), dimnames = list("0",
-                     c("X",feats)), nrow = 1)), data[fps,c("X",feats)],
+                                                                      c("X",feats)), nrow = 1)), data[fps,c("X",feats)],
                      data.frame(matrix(c(max(data$X)+1,pos_maxs),
-                     dimnames = list(as.character(max(data$X)+1),
-                                     c("X",feats)), nrow = 1)))
+                                       dimnames = list(as.character(max(data$X)+1),
+                                                       c("X",feats)), nrow = 1)))
   diff_df   <- fps_df
   # setting up the data frame to store the top index since this information is
   # lost in the index assignment
@@ -193,7 +204,7 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   # fit the new model with these limits creating additional features
   nmodel <- modelfit(data = ndata, response = obj$response, fit_type = "SQ",
                      groups = ngroups, params = list(sdfilter = NULL,
-                     limits = nlimits))
+                                                     limits = nlimits))
   
   # now make a new model with just the most dominant limits with the original
   # features
@@ -221,11 +232,13 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   }
   
   if (!is.null(devset))
-    data <- rbind(obj$data[,c("X",feats,obj$resp)],
-                  devset[,c("X",feats,obj$resp)])
+    data <- rbind(data.frame(obj$data[,c(feats,obj$resp)]),
+                  data.frame(devset[,c(feats,obj$resp)]))
   else
-    data <- obj$data
-  data   <- data[,-which(colnames(data) %in% exclude)]
+    data <- data.frame(obj$data)
+  
+  if (length(which(colnames(data) %in% exclude)) > 0)
+    data   <- data[,-which(colnames(data) %in% exclude)]
   data$X <- 1:dim(data)[1]
   nmodel <- modelfit(data = data, resp = obj$response, fit_type = "SQ",
                      groups = obj$model$groups,
@@ -233,7 +246,6 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   
   return(nmodel)
 }
-
 
 
 

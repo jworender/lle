@@ -80,6 +80,9 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
     data_struct  <- do.call(rectify, args = rectify_params)
     tdata        <- data_struct$data
     groups       <- data_struct$groups
+    # update the features (these may change depending on the parameters
+    # that might have been overridden)
+    feats        <- unlist(data_struct$ngroups)
     fit_features <- unique(unlist(lapply(fit_features, FUN = function(x) {
       colnames(tdata)[grep(paste0(x,"$"),colnames(tdata))] })))
   }
@@ -238,6 +241,12 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
     model$limits      <- data_struct$limits
     model$climits     <- climits
     model$sdfilter    <- modeler_params$sdfilter
+    model$cdata       <- data_struct$cdata
+    model$lcats       <- data_struct$lcats
+    model$diffs       <- data_struct$diffs
+    model$ratios      <- data_struct$ratios
+    model$addrev      <- data_struct$addrev
+    model$exclude     <- data_struct$exclude
     # recording the unmodified data in the model object
     tdata <- data
   }
@@ -368,7 +377,10 @@ modfunc <- function(model, data, dtype = NULL, result_column = "pred",
     
     if (dtype == "SQ") {
       dstruct <- rectify(data = data, resp = NULL, limits = model$limits,
-                         groups = model$groups, sdfilter = model$sdfilter)
+                         groups = model$groups, sdfilter = model$sdfilter,
+                         cdata = model$cdata, ilcats = model$lcats,
+                         diffs = model$diffs, ratios = model$ratios,
+                         addrev = model$addrev, exclude = model$exclude)
       othercols <- colnames(data)[!(colnames(data) %in% colnames(dstruct$data))]
       if (length(othercols) > 0) {
         data <- cbind(data[,othercols], dstruct$data)
