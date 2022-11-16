@@ -1,7 +1,8 @@
 ---
 title: "LLE: Case I"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-11-06
++"
 output: 
   html_document: 
     keep_md: yes
@@ -157,7 +158,7 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
-## ##------ Sun Oct 30 18:41:25 2022 ------##
+## ##------ Sun Nov  6 12:28:39 2022 ------##
 ```
 
 ```
@@ -220,11 +221,11 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
-## ##------ Sun Oct 30 18:41:28 2022 ------##
+## ##------ Sun Nov  6 12:28:42 2022 ------##
 ```
 
 ```
-## ##------ Sun Oct 30 18:41:41 2022 ------##
+## ##------ Sun Nov  6 12:28:56 2022 ------##
 ```
 
 ```
@@ -308,7 +309,7 @@ Fitting a Random Forest model to a rectified version of the data, as might be
 expected, yields a better fit.  However, the performance of the Random Forest
 fit is still inferior to that of the LASSO fit on transformed data, and the
 fitting process took a considerably longer 25 seconds on the same machine as the
-other two runs (which puts it at ~10x the execution time).
+other two runs (which puts it at ~10x the execution time of the LASSO).
 
 
 ```r
@@ -324,7 +325,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:41:42 2022 ------##
+## ##------ Sun Nov  6 12:28:57 2022 ------##
 ```
 
 ```r
@@ -333,7 +334,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:43:09 2022 ------##
+## ##------ Sun Nov  6 12:30:33 2022 ------##
 ```
 
 ```r
@@ -379,7 +380,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:43:10 2022 ------##
+## ##------ Sun Nov  6 12:30:33 2022 ------##
 ```
 
 ```r
@@ -391,7 +392,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:43:34 2022 ------##
+## ##------ Sun Nov  6 12:30:59 2022 ------##
 ```
 
 ```r
@@ -429,8 +430,9 @@ As seen below, however, the results on this particular type of problem are
 actually worse than even just a standard LASSO by a large margin.  In addition,
 the fitting process itself took 107 seconds on the same hardware used to
 benchmark the other methods, which is considerably longer than *any* of the
-other methods.  The sorted results also have a peculiar and irregular shape when
-compared to the other methods.
+other methods.  The transformed data  results also have a peculiar and irregular
+shape when compared to the other methods (fitting the transformed data took
+about 49 seconds on the same hardware).
 
 
 ```r
@@ -446,7 +448,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:43:35 2022 ------##
+## ##------ Sun Nov  6 12:31:00 2022 ------##
 ```
 
 ```r
@@ -455,7 +457,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:45:24 2022 ------##
+## ##------ Sun Nov  6 12:32:55 2022 ------##
 ```
 
 ```r
@@ -493,7 +495,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:45:24 2022 ------##
+## ##------ Sun Nov  6 12:32:55 2022 ------##
 ```
 
 ```r
@@ -510,7 +512,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:45:24 2022 ------##
+## ##------ Sun Nov  6 12:32:55 2022 ------##
 ```
 
 ```r
@@ -523,7 +525,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:46:01 2022 ------##
+## ##------ Sun Nov  6 12:33:36 2022 ------##
 ```
 
 ```r
@@ -563,7 +565,7 @@ correct time step on one of the weaker features (a feature that only affected
 the outcome of a handful of examples and was not required to fully describe any
 outcomes).  The time it took was comparable as well (~2 seconds using the same
 hardware as above).  In the future, it may be advantageous to use Ridge
-Regression as a an approximator with nearly the same fidelity since it has a
+Regression as an alternative with nearly the same fidelity since it has a
 closed form solution and may be easier to parallelize for use with high
 performance computation hardware. Comparing the two sets of plots, they look
 very similar but there are a few differentiating details.
@@ -582,7 +584,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:46:02 2022 ------##
+## ##------ Sun Nov  6 12:33:36 2022 ------##
 ```
 
 ```r
@@ -591,7 +593,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:46:15 2022 ------##
+## ##------ Sun Nov  6 12:33:50 2022 ------##
 ```
 
 ```r
@@ -637,7 +639,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:46:15 2022 ------##
+## ##------ Sun Nov  6 12:33:50 2022 ------##
 ```
 
 ```r
@@ -649,7 +651,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sun Oct 30 18:46:17 2022 ------##
+## ##------ Sun Nov  6 12:33:52 2022 ------##
 ```
 
 ```r

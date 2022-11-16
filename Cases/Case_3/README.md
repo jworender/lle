@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case III"
 author: "Jason Orender"
-date: "2022-10-29"
+date: "2022-11-06"
 output: 
   html_document: 
     keep_md: yes
@@ -175,6 +175,41 @@ distinctive pattern shown in the following plots.
 ```
 
 ```
+## Loading required package: gglasso
+```
+
+```
+## Warning: package 'gglasso' was built under R version 4.2.1
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## Warning: package 'randomForest' was built under R version 4.2.1
+```
+
+```
+## randomForest 4.7-1.1
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+```
 ## Loading required package: openssl
 ```
 
@@ -210,6 +245,12 @@ new larger (about 2 x size) data set.
 ```
 ## 
 ## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     combine
 ```
 
 ```
@@ -260,12 +301,11 @@ the extra versions calculated.
 ```
 
 It is clear from the performance of the new models trained with extra versions
-of each feature that would exist if a logical 'OR' relationship existed that
-there is a significant performance boost when the new versions of each feature
-with different critical ranges are created. The Figures below show the training
-and test sets when applied to the model created with the limited number of extra
-versions, and the performance advantage over the LASSO applied to the original
-continuous data is profound.
+which have clipped ranges that there is a significant performance boost when the
+new versions of each feature added. The Figures below show the training and test
+sets when applied to the model created with the extra versions, and the
+performance advantage over the LASSO applied to the original continuous data is
+profound.
 
 ![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-1.png)<!-- -->![](Case_3_markdown_files/figure-html/transformed_data_plots_ev-2.png)<!-- -->
 
@@ -280,10 +320,12 @@ The previous plot shows that two out of the four relevant curves are adequately
 identified as having nonzero coefficients that stand out.  The reason that only
 two are identified is that in this case, the the results can be completely
 described by those two features alone.  They occlude the other features, since
-there are no examples in which the remaining features are needed to explain.  It
-is notable that even though the remaining features are occluded by the first
-two, they still introduced a great deal of error in the standard LASSO, as well
-as the LASSO on the modified data without the extra versions of the features.
+there are few, if any, examples in which the remaining features are needed to
+explain. It is notable that even though the remaining features are occluded by
+the first two, they still introduced a great deal of error in the standard
+LASSO, as well as the LASSO on the modified data without the extra versions of
+the features (after the initial transformation, but before the extra versions
+are added).
 
 
 

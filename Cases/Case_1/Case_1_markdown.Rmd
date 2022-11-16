@@ -1,8 +1,7 @@
 ---
 title: "LLE: Case I"
 author: "Jason Orender"
-date: "2022-10-30
-+"
+date: "2022-11-06"
 output: 
   html_document: 
     keep_md: yes
@@ -262,8 +261,9 @@ As seen below, however, the results on this particular type of problem are
 actually worse than even just a standard LASSO by a large margin.  In addition,
 the fitting process itself took 107 seconds on the same hardware used to
 benchmark the other methods, which is considerably longer than *any* of the
-other methods.  The sorted results also have a peculiar and irregular shape when
-compared to the other methods.
+other methods.  The transformed data  results also have a peculiar and irregular
+shape when compared to the other methods (fitting the transformed data took
+about 49 seconds on the same hardware).
 
 ```{r}
 message("Fitting Group LASSO model...")

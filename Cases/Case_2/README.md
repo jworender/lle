@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case II"
 author: "Jason Orender"
-date: "2022-08-28"
+date: "2022-11-06"
 output: 
   html_document: 
     keep_md: yes
@@ -166,6 +166,41 @@ answer fidelity when not all relevant variables are present. The following speci
 ```
 
 ```
+## Loading required package: gglasso
+```
+
+```
+## Warning: package 'gglasso' was built under R version 4.2.1
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## Warning: package 'randomForest' was built under R version 4.2.1
+```
+
+```
+## randomForest 4.7-1.1
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+```
 ## Loading required package: openssl
 ```
 
@@ -200,6 +235,12 @@ training set, there is a considerably greater effect.
 ```
 ## 
 ## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     combine
 ```
 
 ```
@@ -276,6 +317,6 @@ by a large margin.
 
 The more missing data there is, the greater the level of noise in the final
 result.  While this is inconvenient, it is also a reliable indicator regarding
-that there might be an under- or un-represented causative factor in the data,
+whether there might be an under- or un-represented causative factor in the data,
 perhaps leading an investigator to continue searching for new features to
 achieve a sparse return similar to Fig. 13.
