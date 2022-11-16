@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-10-29"
+date: "2022-11-06"
 output: 
   html_document: 
     keep_md: yes
@@ -136,7 +136,7 @@ overfitting.
 hpos <- 0.6
 plot(ion_sq_fit, title = "Goose Bay Training Set (transformed data)", h=.5,
      cx = hpos)
-plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos, cy = .55,
+plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos, cy = .4,
      title = "Goose Bay Testing Set (transformed data)")
 ```
 
@@ -153,11 +153,26 @@ the important signals, which are arguably nearly as interesting as the model
 results alone.
 
 ```{r transformed_data_barplot, echo=FALSE}
+BARHT   <- 5
 beta1   <- ion_sq_fit$model$beta[,]
+beta1   <- beta1[sort(names(beta1))]
 markers <- rep(0,length(beta1))
 
 par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", las = 2, main = "Coefficients from Transformed Data")
+barplot(beta1, border = "blue", col = "blue", las = 2, xaxt = "n")
+par(new=TRUE)
+bplot <- barplot(markers, border = "blue", col = "blue",
+                 yaxt = "n", las=2,
+                 main = "Coefficients from Transformed Data")
+cnames <- c("Pulse_2_r", "Pulse_3_r", "Pulse_2_i", "Pulse_3_i", "Pulse_4_i",
+            "Pulse_7_i", "Pulse_9_i")
+bplot_at <- NULL
+for (i in 1:length(cnames))
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
+bplot_labels <- rep(NA, length(beta1))
+bplot_labels[bplot_at] <- cnames
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.8, tick=FALSE)
+
 ```
 
 The coefficient for the LASSO solution on the un-transformed data (see below),

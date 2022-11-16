@@ -1,7 +1,7 @@
 ---
 title: "LLE: Goose Bay Case Study"
 author: "Jason Orender"
-date: "2022-10-29"
+date: "2022-11-06"
 output: 
   html_document: 
     keep_md: yes
@@ -77,6 +77,41 @@ function resulting from the complex electromagnetic signal."
 ```
 
 ```
+## Loading required package: gglasso
+```
+
+```
+## Warning: package 'gglasso' was built under R version 4.2.1
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## Warning: package 'randomForest' was built under R version 4.2.1
+```
+
+```
+## randomForest 4.7-1.1
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+```
 ## Loading required package: openssl
 ```
 
@@ -94,7 +129,11 @@ function resulting from the complex electromagnetic signal."
 The LASSO with transformed data (shown immediately below) again exceeded the
 performance the LASSO with the original un-transformed data (shown below the
 figures for the transformed data) and nearly matched the neural network that was
-specifically tuned and used to analyze the data in the original paper.
+specifically tuned and used to analyze the data in the original paper.  Note
+also the similar training and testing results for the transformed data, while
+there is a large disparity between the training and testing results for the un-
+transformed data.  This is an example of how the transformed data resists
+overfitting.
 
 
 ```
@@ -104,6 +143,12 @@ specifically tuned and used to analyze the data in the original paper.
 ```
 ## 
 ## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     combine
 ```
 
 ```
