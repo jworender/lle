@@ -38,7 +38,8 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
       data <- devset
   }
   # ensuring input data is in data frame form
-  data <- data.frame(data)
+  data  <- data.frame(data)
+  odata <- data
   
   data_pred <- modfunc(obj$model, data = data, rescale = c(0,1))
   resp <- as.logical(data[,obj$response])
@@ -60,10 +61,22 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
     return(r)
   }))
   
+  groups <- obj$model$groups
+  if ((obj$model$diffs) | (obj$model$ratios) | (obj$model$addrev)){
+    dstruct <- rectify(data, resp = obj$response, exclude = obj$model$exclude,
+                       limits = obj$model$limits, groups = obj$model$groups,
+                       dfilter = NULL, sdfilter = NULL, diffs = obj$model$diffs,
+                       ratios = obj$model$ratios, addrev = obj$model$addrev,
+                       cdata = obj$model$cdata, verbose = FALSE,
+                       ilcats = obj$model$lcats, reti = TRUE)
+    data <- dstruct$data
+    groups <- dstruct$groups
+  }
+  
   # ensuring there is an index column
   data$X     <- 1:dim(data)[1]
   # extract all features specified in the groups
-  feats      <- unlist(unname(obj$model$groups))
+  feats      <- unlist(unname(groups))
   # calculating the mins and max's of the true positives and false positives
   pos_mins   <- unlist(lapply(feats, FUN = function(f) {
     min(data[(resp | fps),f])
@@ -75,7 +88,7 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   names(pos_maxs) <- feats
   # setting up the difference data frame
   fps_df    <- rbind(data.frame(matrix(c(0,pos_mins), dimnames = list("0",
-                                                                      c("X",feats)), nrow = 1)), data[fps,c("X",feats)],
+                     c("X",feats)), nrow = 1)), data[fps,c("X",feats)],
                      data.frame(matrix(c(max(data$X)+1,pos_maxs),
                                        dimnames = list(as.character(max(data$X)+1),
                                                        c("X",feats)), nrow = 1)))
@@ -105,63 +118,67 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   tps_df  <- data[resp,]
   # initializing the zone data
   ndata   <- data
-  ngroups <- obj$model$groups
+  ngroups <- groups
   nlimits <- obj$model$limits
   
+  allcdata <- unname(unlist(obj$model$ngroups[paste0(obj$model$cdata,".cats")],
+                            recursive = FALSE))
   if (nzones == 0) {
     # calculating new limits
     limits <- obj$model$limits
     for (i in 1:length(lims)) {
       l  <- lims[[i]]
       nm <- names(lims)[i]
-      
-      in_min <- min(data[fps,nm])
-      in_max <- max(data[fps,nm])
-      
-      # region #1 is the portion of the critical range that is below the false
-      # range
-      r1 <- c(l[1],0)
-      if (l[1] < in_min) r1[2] <- in_min
-      else if ((l[1] >= in_min) & (l[1] <= in_max)) r1[2] <- in_max
-      else if (l[1] > in_max) r1[2] <- l[2]
-      if ((r1[1] > in_min) & (r1[2] < in_max)) r1[2] <- l[1] 
-      if (r1[2] > l[2]) r1[2] <- l[2]
-      
-      # region #2 is the portion of the critical range that is above the false
-      # range
-      r2 <- c(0,l[2])
-      if (l[2] > in_max) r2[1] <- in_max
-      else if ((l[2] >= in_min) & (l[2] <= in_max)) r2[1] <- in_min
-      else if (l[2] < in_min) r2[1] <- l[1]
-      if ((r2[1] > in_min) & (r2[2] < in_max)) r2[1] <- l[2] 
-      if (r2[1] < l[1]) r2[1] <- l[1]
-      
-      # figure out which region is bigger and choose that region for the new
-      # limits - one of the regions is sometimes a sliver that does not actually
-      # contain any points
-      if ((r1[2] - r1[1]) > (r2[2] - r2[1]))
-        lnew <- r1
-      else
-        lnew <- r2
-      ncontained <- sum((data[,nm] > lnew[1]) &
-                          (data[,nm] < lnew[2]))
-      if (ncontained == 0) lnew <- l
-      
-      limits[[dict[nm]]][[nm]] <- lnew    
+      if (!(nm %in% allcdata)) {
+        
+        in_min <- min(data[fps,nm])
+        in_max <- max(data[fps,nm])
+        
+        # region #1 is the portion of the critical range that is below the false
+        # range
+        r1 <- c(l[1],0)
+        if (l[1] < in_min) r1[2] <- in_min
+        else if ((l[1] >= in_min) & (l[1] <= in_max)) r1[2] <- in_max
+        else if (l[1] > in_max) r1[2] <- l[2]
+        if ((r1[1] > in_min) & (r1[2] < in_max)) r1[2] <- l[1] 
+        if (r1[2] > l[2]) r1[2] <- l[2]
+        
+        # region #2 is the portion of the critical range that is above the false
+        # range
+        r2 <- c(0,l[2])
+        if (l[2] > in_max) r2[1] <- in_max
+        else if ((l[2] >= in_min) & (l[2] <= in_max)) r2[1] <- in_min
+        else if (l[2] < in_min) r2[1] <- l[1]
+        if ((r2[1] > in_min) & (r2[2] < in_max)) r2[1] <- l[2] 
+        if (r2[1] < l[1]) r2[1] <- l[1]
+        
+        # figure out which region is bigger and choose that region for the new
+        # limits - one of the regions is sometimes a sliver that does not actually
+        # contain any points
+        if ((r1[2] - r1[1]) > (r2[2] - r2[1]))
+          lnew <- r1
+        else
+          lnew <- r2
+        ncontained <- sum((data[,nm] > lnew[1]) &
+                            (data[,nm] < lnew[2]))
+        if (ncontained == 0) lnew <- l
+        
+        limits[[dict[nm]]][[nm]] <- lnew    
+      }
     }
     adata  <- data[,(colnames(data) %in% names(dict))]
     colnames(adata) <- paste0(colnames(adata),".2")
     # fit the new model with these limits creating additional features
     ndata <- cbind(data,adata)
-    ngroups <- obj$model$groups
-    names(ngroups) <- paste0(names(obj$model$groups),".2")
+    ngroups <- groups
+    names(ngroups) <- paste0(names(groups),".2")
     alimits <- limits
     names(alimits)  <- paste0(names(obj$model$limits),".2")
     for (i in 1:length(ngroups)) {
       ngroups[[i]] <- paste0(ngroups[[i]], ".2")
       names(alimits[[i]]) <- paste0(names(alimits[[i]]), ".2")
     }
-    ngroups <- c(obj$model$groups, ngroups)
+    ngroups <- c(groups, ngroups)
     nlimits <- c(obj$model$limits, alimits)
   }
   else {
@@ -171,24 +188,26 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
       for (i in 1:length(lims)) {
         # the name of the feature
         nm      <- names(lims)[i]
-        # the bottom index of the zone
-        idx_bot <- names(sort(diff_df[,nm] %n% diff_df$X, decreasing = TRUE))[n]
-        idx_top <- top_df[top_df$X == idx_bot,nm]
-        lfps <- c(fps_df[fps_df$X == idx_bot,nm], fps_df[fps_df$X == idx_top,nm])
-        # now figure out the value of the first positive example within the zone
-        tps <- sort(tps_df[,nm] %n% tps_df$X)
-        ltps <- c(tps[tps > lfps[1]][1],
-                  tps[tps < lfps[2]][sum(tps < lfps[2])])
-        # take the middle ground so that the false positive will not be included
-        # in the zone, but the true positive definitely will be
-        lnew <- unname((lfps + ltps) / 2)
-        limits[[dict[nm]]][[nm]] <- lnew    
+        if (!(nm %in% allcdata)) {
+          # the bottom index of the zone
+          idx_bot <- names(sort(diff_df[,nm] %n% diff_df$X, decreasing = TRUE))[n]
+          idx_top <- top_df[top_df$X == idx_bot,nm]
+          lfps <- c(fps_df[fps_df$X == idx_bot,nm], fps_df[fps_df$X == idx_top,nm])
+          # now figure out the value of the first positive example within the zone
+          tps <- sort(tps_df[,nm] %n% tps_df$X)
+          ltps <- c(tps[tps > lfps[1]][1],
+                    tps[tps < lfps[2]][sum(tps < lfps[2])])
+          # take the middle ground so that the false positive will not be included
+          # in the zone, but the true positive definitely will be
+          lnew <- unname((lfps + ltps) / 2)
+          limits[[dict[nm]]][[nm]] <- lnew    
+        }
       }
       adata  <- data[,c("X", feats)]
       colnames(adata) <- c("X", paste0(feats, ".", n+1))
       # rename the groups and limits appropriately to be consistent with the
       # new column names
-      newgr  <- obj$model$groups
+      newgr  <- groups
       for (i in 1:length(newgr)) {
         newgr[[i]] <- paste0(newgr[[i]],".",n+1)
         names(limits[[i]]) <- paste0(names(limits[[i]]),".",n+1)
@@ -240,7 +259,7 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   if (length(which(colnames(data) %in% exclude)) > 0)
     data   <- data[,-which(colnames(data) %in% exclude)]
   data$X <- 1:dim(data)[1]
-  nmodel <- modelfit(data = data, resp = obj$response, fit_type = "SQ",
+  nmodel <- modelfit(data = odata, resp = obj$response, fit_type = "SQ",
                      groups = obj$model$groups,
                      params=list(limits=new_limits))
   

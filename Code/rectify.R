@@ -53,12 +53,18 @@
 #'     categorical columns.
 #' @param verbose A logical which determines whether informational messages
 #'     are displayed to the console.
+#' @param reti If TRUE, return the intermediate data frame that exists after an
+#'     operation is performed on it (like 'diffs'), but before it is rectified.
+#'     This is used in the collapse_limits routine.
 #' @export
 rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                     groups = NULL, dfilter = NULL, sdfilter = NULL,
                     diffs = FALSE, ratios = FALSE, addrev = FALSE,
-                    cdata = NULL, verbose = FALSE, ilcats = NULL) {
+                    cdata = NULL, verbose = FALSE, ilcats = NULL, reti = FALSE) {
 
+    # ensuring the input data is just a generic data frame
+    data <- data.frame(data)
+    
     # excluding named columns
     odata   <- data
     ogroups <- groups
@@ -84,6 +90,7 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
     
     # diffs
     if (diffs) {
+      feats <- sort(feats)
       for (i in 1:(length(feats)-1)) {
         fbegin <- colnames(data)
         for (j in (i+1):length(feats)) {
@@ -102,13 +109,23 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
     
     # ratios
     if (ratios) {
-      for (i in 1:length(feats)) {
+      feats <- sort(feats)
+      for (i in 1:(length(feats)-1)) {
+        fbegin <- colnames(data)
         for (j in (i+1):length(feats)) {
-          data[,paste0(feats[i],"_R_",feats[j])] <-
-            data[,feats[i]] / data[,feats[j]]
+          nfname <- paste0(feats[i],"_R_",feats[j])
+          data[,nfname] <- data[,feats[i]] / data[,feats[j]]
         }
+        # add to the groups
+        groups[[feats[i]]] <- colnames(data)[!(colnames(data) %in% fbegin)]
       }
+      keep <- rep(TRUE,dim(data)[1])
+      for (i in 1:dim(data)[1])
+        if (any(is.na(data[i,]))) keep[i] <- FALSE
+      data <- data[keep,]
     }
+    
+    if (reti) return(list(data = data, groups = groups))
     
     # determining the critical ranges
 
@@ -157,7 +174,7 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                cat_lims <- list()
                for (k in 1:length(cats)) {
                  nfname <- paste0(ts,".",k)
-                 dset_new[,nfname] <- data[,ts] == cats[k]
+                 dset_new[,nfname] <- data[,ts] %in% cats[k]
                  dset_new[,nfname][!dset_new[,nfname]] <- -1
                  cat_lims[[nfname]] <- c(0.999,1.001)
                }
@@ -196,12 +213,15 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                     dset_new[,ts] <- rep(-1, dim(dset_new)[1])
             }
         }
-        # all features in a group can be assumed to be either categorical or
-        # continuous, not a mix
-        if (!(ts %in% cdata)) { a <- lim; lim <- list(); lim[[gp]] <- a }
-        # record this list of limits associated with each element to the master
-        # list containing the limits for all groups
-        lim_return <- c(lim_return, lim)
+        if (any(igroups[[gp]] %in% cdata)) { 
+          lim_working <- list()
+          con <- unlist(lapply(lim, FUN = function(x) !is.list(x)))
+          lim_working[[gp]] <- lim[con]
+          lim_working <- c(lim_working, lim[!con])
+          lim_return <- c(lim_return, lim_working)
+        }
+        else
+          lim_return[[gp]] <- lim
     }
     # removing any zero-length groups (may occur if a group was entirely
     # composed of categorical variables)
@@ -226,7 +246,7 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
     }
 
     # return the data structure
-    names(lim_return)  <- names(groups)
+    #names(lim_return)  <- names(groups)
     return(list(data = dset_new, original_data = odata, exclude = c(exclude,resp),
                 groups = ogroups, ngroups = groups, resp = resp, limits = lim_return,
                 dfilter = dfilter, sdfilter = sdfilter, cdata = cdata,

@@ -79,7 +79,7 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
     # transform the data via rectification
     data_struct  <- do.call(rectify, args = rectify_params)
     tdata        <- data_struct$data
-    groups       <- data_struct$groups
+    groups       <- data_struct$ngroups
     # update the features (these may change depending on the parameters
     # that might have been overridden)
     feats        <- unlist(data_struct$ngroups)
@@ -238,6 +238,7 @@ modelfit <- function(data = NULL, fit_features = NULL, exclude = "X",
     climits <- climits %n% names(data_struct$limits)
     
     model$groups      <- data_struct$groups
+    model$ngroups     <- data_struct$ngroups
     model$limits      <- data_struct$limits
     model$climits     <- climits
     model$sdfilter    <- modeler_params$sdfilter
