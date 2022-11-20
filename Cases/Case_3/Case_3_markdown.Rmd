@@ -285,6 +285,7 @@ the extra versions calculated.
 ```{r fit_models_ev, echo=FALSE}
 message("Fitting a new model with additional feature versions that *might* exist...")
 model_1a <- collapse_limits(model_1, nzones = 0)
+model_1a <- collapse_limits(model_1a, nzones = 0)
 message("  Done.")
 ```
 
