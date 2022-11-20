@@ -218,8 +218,8 @@ cols    <- rep(rgb(0,0,0,0), length(beta1))
 
 cols[grep("V8TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
 markers[grep("V8TM10", names(beta1))]  <- BARHT
-cols[grep("V9TM1", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta1))]   <- BARHT
+cols[grep("V9TM1$", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V9TM1$", names(beta1))]   <- BARHT
 cols[grep("V10TM0", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
 markers[grep("V10TM0", names(beta1))]  <- BARHT
 cols[grep("V13TM2", names(beta1))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
@@ -253,8 +253,8 @@ cols    <- rep(rgb(0,0,0,0), length(beta2))
   
 cols[grep("V8TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
 markers[grep("V8TM10", names(beta2))]  <- BARHT
-cols[grep("V9TM1", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta2))]   <- BARHT
+cols[grep("V9TM1$", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V9TM1$", names(beta2))]   <- BARHT
 cols[grep("V10TM0", names(beta2))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
 markers[grep("V10TM0", names(beta2))]  <- BARHT
 cols[grep("V13TM2", names(beta2))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
@@ -357,8 +357,8 @@ cols    <- rep(rgb(0,0,0,0), length(beta2))
   
 cols[grep("V8TM10", names(beta2))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
 markers[grep("V8TM10", names(beta2))]  <- BARHT
-cols[grep("V9TM1", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V9TM1", names(beta2))]   <- BARHT
+cols[grep("V9TM1$", names(beta2))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V9TM1$", names(beta2))]   <- BARHT
 cols[grep("V13TM2", names(beta2))]     <- rgb(1.0, 0.0, 1.0,TRANS) #MAGENTA
 markers[grep("V13TM2", names(beta2))]  <- BARHT
 cols[grep("V25TM3", names(beta2))]     <- rgb(0.1, 0.5, 0.5,TRANS) #TEAL
