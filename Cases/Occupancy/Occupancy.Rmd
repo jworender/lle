@@ -1,0 +1,225 @@
+---
+title: "LLE: Occupancy"
+author: "Jason Orender"
+date: "2022-11-19"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(stringr)
+
+source("../../Code/functions.R")
+source("../../Code/rectify.R")
+source("../../Code/collapse_limits.R")
+
+setwd("~/lle/Cases/Occupancy")
+```
+
+## Detecting Occupancy
+
+In 2015, Luis Candanedo and Véronique Feldheim published a <a href="https://www.researchgate.net/profile/Luis_Candanedo_Ibarra/publication/285627413_Accurate_occupancy_detection_of_an_office_room_from_light_temperature_humidity_and_CO2_measurements_using_statistical_learning_models/links/5b1d843ea6fdcca67b690c28/Accurate-occupancy-detection-of-an-office-room-from-light-temperature-humidity-and-CO2-measurements-using-statistical-learning-models.pdf">paper</a> and a data set intended
+to demonstrate a highly accurate system for the detection of human occupancy in
+a room based on light, humidity, CO2 concentration, and temperature. One of the
+stated difficulties in modeling this set was a high degree of correlation
+between the parameters, which makes it an excellent test for this method of
+analysis.  What we find is that when the results of methods studied by the paper
+are examined with the LASSO model run on the transformed data for the same
+features, the transformed data performs on par with the standards published in
+the paper.  The advantage comes when computational power and feature selection
+are considered. A relatively difficult combination of features (Light, CO2,
+Humidity, Humidity Ratio, and Week Status) was chosen to compare numbers that
+were not all clustered around 100%.  The following are the results:
+
+ Method   | Accuracy(paper) | Accuracy (this) | Enhanced |
+:--------:|:---------------:|:---------------:|:--------:|
+LASSO(Tr) |95.8%            |97.0%            |N/A       |
+RF        |96.06%           |94.05%*          |97.6%     |
+GBM       |96.06%           |N/A              |N/A       |
+CART      |97.82%           |N/A              |N/A       |
+LDA       |97.86%           |N/A              |N/A       |
+* It is unclear where the authors of the other paper drew the discrimination
+threshold, but all thresholds are drawn at 0.5 in this work for the purpose of
+comparison on a level playing field.
+
+The "Enhanced" column above shows the Random Forest model when the features 
+selected via the LASSO with transformed data are used.  This shows a 3.5%+ boost
+in accuracy when modeled using the features selected when this is the only
+change, and is an example of how the two techniques could be used together.
+
+```{r cars, echo=FALSE}
+  VARS = c("Humidity", "Light", "CO2", "Temperature", "TIdx", "wday")
+
+ds_train <- read_csv("~/lle/Cases/Occupancy/datatraining.csv", show_col_types = FALSE)
+ds_test  <- read_csv("~/lle/Cases/Occupancy/datatest.csv", show_col_types = FALSE)
+ds_test2 <- read_csv("~/lle/Cases/Occupancy/datatest2.csv", show_col_types = FALSE)
+
+cnames <- colnames(ds_train)
+cnames[8] <- "INDC"
+
+colnames(ds_train) <- cnames
+colnames(ds_test)  <- cnames
+colnames(ds_test2) <- cnames
+
+ds_train$INDC <- ds_train$INDC == 1
+ds_test$INDC  <- ds_test$INDC == 1
+ds_test2$INDC <- ds_test2$INDC == 1
+
+ds_train$Date <- as.Date(substr(ds_train$date, 1, 10))
+ds_test$Date  <- as.Date(substr(ds_test$date, 1, 10))
+ds_test2$Date <- as.Date(substr(ds_test2$date, 1, 10))
+
+ds_train$DIdx <- as.numeric(substr(ds_train$date, 9, 10))
+ds_test$DIdx  <- as.numeric(substr(ds_test$date,  9, 10))
+ds_test2$DIdx <- as.numeric(substr(ds_test2$date, 9, 10))
+
+ds_train$TIdx <- as.numeric(substr(ds_train$date, 12, 13)) +
+                 as.numeric(substr(ds_train$date, 15, 16))/60 +
+                 as.numeric(substr(ds_train$date, 15, 16))/(60*60)
+ds_test$TIdx  <- as.numeric(substr(ds_test$date, 12, 13)) +
+                 as.numeric(substr(ds_test$date, 15, 16))/60 +
+                 as.numeric(substr(ds_test$date, 15, 16))/(60*60)
+ds_test2$TIdx <- as.numeric(substr(ds_test2$date, 12, 13)) +
+                 as.numeric(substr(ds_test2$date, 15, 16))/60 +
+                 as.numeric(substr(ds_test2$date, 15, 16))/(60*60)
+
+wday_dict <- as.integer(as.factor(weekdays(ds_train$date))) %n% weekdays(ds_train$date)
+wday_dict <- unique(wday_dict) %n% unique(names(wday_dict))
+ds_train$wday <- wday_dict[weekdays(ds_train$date)]
+ds_test$wday  <- wday_dict[weekdays(ds_test$date)]
+ds_test2$wday <- wday_dict[weekdays(ds_test2$date)]
+
+# eliminating time and date from the analysis to provide a better spread in the
+# models, since all models approach 100% if time is included in the analysis
+cnames <- c("X","INDC",VARS)
+ds_train <- data.frame(ds_train[,cnames])
+ds_test  <- data.frame(ds_test[,cnames])
+ds_test2 <- data.frame(ds_test2[,cnames])
+
+set.seed(1234) # for repeatability of random forest fit
+mod_rf0 <- modelfit(ds_train, groups = list(group1 = VARS), fit_type = "RF")
+mod_ls0 <- modelfit(ds_train, groups = list(group1 = VARS), fit_type = "LS")
+mod_sq0 <- modelfit(ds_train, groups = list(group1 = VARS), fit_type = "SQ",
+                    params = list(diffs = FALSE, cdata = "wday"))
+```
+
+```{r, echo=FALSE}
+plot(mod_rf0, data = ds_test, title = "Occupancy Test Data #1 (RF)")
+plot(mod_rf0, data = ds_test2, title = "Occupancy Test Data #2 (RF)")
+plot(mod_ls0, data = ds_test, title = "Occupancy Test Data #1 (LS)")
+plot(mod_ls0, data = ds_test2, title = "Occupancy Test Data #2 (LS)")
+plot(mod_sq0, data = ds_test, title = "Occupancy Test Data #1 (SQR)", cx = 0.6)
+plot(mod_sq0, data = ds_test2, title = "Occupancy Test Data #2 (SQR)", cx = 0.6)
+
+beta0   <- mod_sq0$model$beta[,]
+markers <- rep(0,length(beta0))
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta0, border = "blue", col = "blue", ylim = c(-7, 7), las = 2,
+        xaxt = "n")
+  
+par(new=TRUE)
+bplot <- barplot(markers, border = "blue", col = "blue", ylim = c(-7, 7),
+                 yaxt = "n", main = "Coefficient Magnitudes for Transformed Data Fit")
+cnames <- c("Humidity", "Light", "CO2", "Temperature", "TIdx", "wday.1", "wday.2", "wday.3", "wday.4", "wday.5", "wday.6", "wday.7")
+bplot_at <- NULL
+for (i in 1:length(cnames))
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta0)))
+bplot_labels <- rep(NA, length(beta0))
+bplot_labels[bplot_at] <- cnames
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+```
+
+
+The weekdays listed are:  wday.1 = Wed, wday.2 = Thurs, wday.3 = Fri,
+wday.4 = Sat, wday.5 = Sun, wday.6 = Mon, wday.7 = Tues.  So, the plot above
+shows that negative coefficients were assigned to Saturday and Sunday.  They
+ended up in this order because that is the order that they appeared in the
+original data file.
+
+```{r, echo=FALSE}
+beta1   <- mod_ls0$model$beta[,]
+markers <- rep(0,length(beta1))
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta1, border = "blue", col = "blue", ylim = c(-2, .5), las = 2,
+        xaxt = "n")
+  
+par(new=TRUE)
+bplot <- barplot(markers, border = "blue", col = "blue", ylim = c(-2, .5),
+                 yaxt = "n",
+                 main = "Coefficient Magnitudes for Un-Transformed Data Fit")
+cnames <- c("Humidity", "Light", "CO2", "Temperature", "TIdx", "wday")
+bplot_at <- NULL
+for (i in 1:length(cnames))
+  bplot_at <- c(bplot_at,grep(paste0(cnames[i],"$"),names(beta1)))
+bplot_labels <- rep(NA, length(beta1))
+bplot_labels[bplot_at] <- cnames
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+
+```
+
+
+Note that while the true negative numbers were slightly less for the LASSO on
+transformed data (SQR), the true positive numbers were 100.0% for both test sets.
+Under certain circumstances this would be a superior result if the cost were
+higher to miss an occupied office than to falsely presume that an unoccupied
+office is occupied (for after hours surveillance, for instance). The returns are
+also much more definitive than either the random forest or LASSO on un-
+Transformed data solutions.
+
+The real value comes when investigating the feature selection, however.  The
+LASSO feature selection on the un-Transformed data seems to consist almost
+entirely of the temperature sensor returns.  While there is some merit to using
+this feature, the less accurate returns and more ambiguous transition from
+negative to positive examples signal that this is not a very good selection.
+The selection made by the LASSO on the transformed data seems to not only work
+better, it some intuitive sense.  Saturdays and Sundays and excluded (large
+negative coefficients) and the light and CO2 sensors are utilized almost
+entirely.  The efficacy of this choice is clear when only these features are
+extracted and then a random forest fit is performed on the selected data.  The
+new random forest model results in a 3.5%+ bump in accuracy and shows a much
+better defined transition between negative and positive examples.
+
+
+```{r, echo=FALSE}
+if (TRUE) {
+  # This code block performs a random forest fit using the features selected by
+  # the LASSO on the transformed data
+  betas <- mod_sq0$model$beta[,]
+  betas <- betas[betas!=0]
+  dstruct <- rectify(ds_train, groups = list(group1 = VARS), cdata = "wday")
+  ds_train1 <- dstruct$data[,c(names(betas),"INDC")]
+  ds_train1[,VARS[VARS %in% colnames(ds_train1)]] <-
+    ds_train[,VARS[VARS %in% colnames(ds_train1)]]
+  
+  dstruct_test <- rectify(ds_test, groups = dstruct$groups, cdata = dstruct$cdata,
+                          ilcats = dstruct$lcats, limits = dstruct$limits)
+  ds_test1 <- dstruct_test$data[,c(names(betas),"INDC")]
+  ds_test1[,VARS[VARS %in% colnames(ds_test1)]] <-
+    ds_test[,VARS[VARS %in% colnames(ds_test1)]]
+
+  dstruct_test2 <- rectify(ds_test2, groups = dstruct$groups, cdata = dstruct$cdata,
+                           ilcats = dstruct$lcats, limits = dstruct$limits)
+  ds_test2a <- dstruct_test2$data[,c(names(betas),"INDC")]
+  ds_test2a[,VARS[VARS %in% colnames(ds_test2a)]] <-
+    ds_test2[,VARS[VARS %in% colnames(ds_test2a)]]
+
+  ngroups <- dstruct$ngroups
+  ngroups[[1]] <- ngroups[[1]][ngroups[[1]] %in% names(betas)]
+  ngroups[[2]] <- ngroups[[2]][ngroups[[2]] %in% names(betas)]
+  mod_rf2 <- modelfit(ds_train1, groups = ngroups, fit_type = "RF")
+  plot(mod_rf2, data = ds_test1, title = "Random Forest with Selected Features (Test Set #1)")
+  plot(mod_rf2, data = ds_test2a, title = "Random Forest with Selected Features (Test Set #2)")
+}
+```
+
+In conclusion, there is a great deal of merit to using the models produced by
+the LASSO on the transformed data, but the clarity in the feature selection
+promises an even more fruitful cooperative effort between different modeling
+techniques.
+
+
