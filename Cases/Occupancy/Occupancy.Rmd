@@ -177,8 +177,8 @@ entirely of the temperature sensor returns.  While there is some merit to using
 this feature, the less accurate returns and more ambiguous transition from
 negative to positive examples signal that this is not a very good selection.
 The selection made by the LASSO on the transformed data seems to not only work
-better, it some intuitive sense.  Saturdays and Sundays and excluded (large
-negative coefficients) and the light and CO2 sensors are utilized almost
+better, it makes some intuitive sense.  Saturdays and Sundays and excluded
+(large negative coefficients) and the light and CO2 sensors are utilized almost
 entirely.  The efficacy of this choice is clear when only these features are
 extracted and then a random forest fit is performed on the selected data.  The
 new random forest model results in a 3.5%+ bump in accuracy and shows a much
