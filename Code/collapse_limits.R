@@ -23,7 +23,7 @@
 #' @return A new object which has collapsed boundaries.
 #' @export
 collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
-                            exclude = "X") {
+                            exclude = "X", snap = 0.001) {
   
   if (is.null(devset)) {
     if (length(which(colnames(obj$data) %in% exclude)) > 0)
@@ -43,7 +43,7 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   
   data_pred <- modfunc(obj$model, data = data, rescale = c(0,1))
   resp <- as.logical(data[,obj$response])
-  fps  <- !resp & (data_pred$pred > thresh)
+  fps  <- (!resp & (data_pred$pred > thresh)) | (resp & (data_pred$pred < thresh))
   
   if (sum(fps) == 0) {
     message("Nothing to do.")
@@ -124,50 +124,92 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
   allcdata <- unname(unlist(obj$model$ngroups[paste0(obj$model$cdata,".cats")],
                             recursive = FALSE))
   if (nzones == 0) {
-    # calculating new limits
+    # for nzones == 0, assuming that the false positive region is one contiguous
+    # region that extends from somewhere in the middle of the critical range to
+    # one of its edges - this is a simple case that might effectively clip the
+    # critical ranges and it will be obvious by looking at the training set
+    # whether this strategy worked
     limits <- obj$model$limits
     for (i in 1:length(lims)) {
       l  <- lims[[i]]
       nm <- names(lims)[i]
       if (!(nm %in% allcdata)) {
-        
         in_min <- min(data[fps,nm])
         in_max <- max(data[fps,nm])
+        nt     <- ceiling(snap*dim(data)[1])
+        nmax   <- sum((data[,nm] > in_max) & (data[,nm] < l[2]))
+        nmin   <- sum((data[,nm] < in_min) & (data[,nm] > l[1]))
         
-        # region #1 is the portion of the critical range that is below the false
-        # range
-        r1 <- c(l[1],0)
-        if (l[1] < in_min) r1[2] <- in_min
-        else if ((l[1] >= in_min) & (l[1] <= in_max)) r1[2] <- in_max
-        else if (l[1] > in_max) r1[2] <- l[2]
-        if ((r1[1] > in_min) & (r1[2] < in_max)) r1[2] <- l[1] 
-        if (r1[2] > l[2]) r1[2] <- l[2]
-        
-        # region #2 is the portion of the critical range that is above the false
-        # range
-        r2 <- c(0,l[2])
-        if (l[2] > in_max) r2[1] <- in_max
-        else if ((l[2] >= in_min) & (l[2] <= in_max)) r2[1] <- in_min
-        else if (l[2] < in_min) r2[1] <- l[1]
-        if ((r2[1] > in_min) & (r2[2] < in_max)) r2[1] <- l[2] 
-        if (r2[1] < l[1]) r2[1] <- l[1]
-        
-        # figure out which region is bigger and choose that region for the new
-        # limits - one of the regions is sometimes a sliver that does not actually
-        # contain any points
-        if ((r1[2] - r1[1]) > (r2[2] - r2[1]))
-          lnew <- r1
+        # if both the min and max are unbounded for this feature, there is
+        # nothing left to do
+        if      (is.na(l[1]) & is.na(l[2])) rg <- c(NA, NA)
+        # if one or the other are unbounded, then the other member of the pair
+        # must be the boundary of the false positive region
+        else if (is.na(l[1]))               rg <- c(NA, in_min)
+        else if (is.na(l[2]))               rg <- c(in_max, NA)
+        # if there are very few examples between the critical range limits
+        # and the false positive range limits, they can be assumed to represent
+        # the same number
+        else if (nmin <= nt)                rg <- c(l[1], in_max)
+        else if (nmax <= nt)                rg <- c(in_min, l[2])
+        # the remaining choices mean that the true positive region must lie
+        # somewhere in-between the bounds of the critical range, so finding the
+        # region containing the most true positives and no false positives
+        else {
+          rmin <- l[1]
+          rmax <- l[2]
+          NDIV <- ceiling(sum((data[,nm] >= l[1]) & (data[,nm] <= l[2]))/10)
+          # demarcate the divisions
+          divs <- seq(rmin, rmax, (rmax - rmin)/NDIV)
+          # sum the false positives in each range
+          sfps <- unlist(lapply(1:(length(divs)-1), FUN = function(j) {
+            sum(!resp[(data[,nm] >= divs[j]) & (data[,nm] < divs[j+1])])
+          }))
+          # normalize
+          sfps <- sfps/sum(!resp)
+          # sum the true positives in each range
+          tfps <- unlist(lapply(1:(length(divs)-1), FUN = function(j) {
+            sum(resp[(data[,nm] >= divs[j]) & (data[,nm] < divs[j+1])])
+          }))
+          # normalize
+          tfps  <- tfps/sum(resp)
+          # sum the differences between the accumulated false positives and
+          # true positives
+          diffs <- unlist(lapply(1:NDIV, FUN = function(i)
+            sum((tfps-sfps)[1:i])))
+          # find the extreme points on that curve and use those as the new
+          # critical range min and max
+          f1a  <- min(data[which(diffs == min(diffs)),nm])
+          f1b  <- max(data[which(diffs == min(diffs)),nm])
+          f2a  <- min(data[which(diffs == max(diffs)),nm])
+          f2b  <- max(data[which(diffs == max(diffs)),nm])
+          if (f1a < f2a) rg <- c(f1b,f2a)
+          else           rg <- c(f2b,f1a)
+          if (sum(data[,nm] < rg[1]) <= nt)  rg <- c(NA, in_min)
+          if (sum(data[,nm] > rg[2]) <= nt)  rg <- c(in_max, NA)
+        }
+
+        lnew <- rg
+        # checking to make sure that the new range actually contains positive
+        # results
+        if ((is.na(lnew[1])) & (is.na(lnew[2])))
+          ncontained <- dim(data)[1]
+        else if (is.na(lnew[1]))
+          ncontained <- sum(data[,nm] < lnew[2])
+        else if (is.na(lnew[2]))
+          ncontained <- sum(data[,nm] > lnew[1])
         else
-          lnew <- r2
-        ncontained <- sum((data[,nm] > lnew[1]) &
+          ncontained <- sum((data[,nm] > lnew[1]) &
                             (data[,nm] < lnew[2]))
+        # if it doesn't, just revert back to the old limits
         if (ncontained == 0) lnew <- l
         
         limits[[dict[nm]]][[nm]] <- lnew    
       }
     }
     adata  <- data[,(colnames(data) %in% names(dict))]
-    colnames(adata) <- paste0(colnames(adata),".2")
+    colnames(adata) <- 
+      paste0(colnames(adata)[!(colnames(adata) %in% obj$model$cdata)],".2")
     # fit the new model with these limits creating additional features
     ndata <- cbind(data,adata)
     ngroups <- groups
@@ -175,21 +217,50 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
     alimits <- limits
     names(alimits)  <- paste0(names(obj$model$limits),".2")
     for (i in 1:length(ngroups)) {
-      ngroups[[i]] <- paste0(ngroups[[i]], ".2")
+      ngroups[[i]] <- paste0(ngroups[[i]][!(ngroups[[i]] %in% obj$model$cdata)], ".2")
       names(alimits[[i]]) <- paste0(names(alimits[[i]]), ".2")
     }
     ngroups <- c(groups, ngroups)
     nlimits <- c(obj$model$limits, alimits)
   }
   else {
+    # translating the logical vector into a set of indices
+    fpis <- which(fps)
     for (n in 1:nzones) {
-      # calculating new limits for each zone
+      # for many cases, there might be multiple zones where the critical range
+      # might be active
       limits <- obj$model$limits
       for (i in 1:length(lims)) {
         # the name of the feature
         nm      <- names(lims)[i]
+        # this won't work for categorical data, so preventing running on those
+        # features
         if (!(nm %in% allcdata)) {
-          # the bottom index of the zone
+          # # sorting the gaps in-between false examples by how many true positive
+          # # examples there are in-between
+          # #
+          # # tabulating the false examples and sorting by feature value
+          # vals <- sort(data[!resp,nm] %n% which(!resp))
+          # # creating a small delta so that all examples will be inside bookends,
+          # # to account for the cases in which the true positives go all the way
+          # # to the edge and are not bounded by false examples
+          # small_delta <- 1E-6*mean(data[,nm])
+          # vals <- c((min(data[,nm]) - small_delta) %n% "0",
+          #           vals,
+          #           (max(data[,nm]) + small_delta) %n% (dim(data)[1]+1))
+          # # sorting the gaps by how many true positives there are in-between
+          # # each false example
+          # gaps <- unlist(lapply(2:length(vals), FUN = function(i) {
+          #   fmin <- vals[i-1]
+          #   fmax <- vals[i]
+          #   sum(resp[(data[,nm] > fmin) & (data[,nm] < fmax)])
+          # }))
+          # gnames <- names(gaps[2:length(gaps)])
+          # gaps   <- gaps[1:(length(gaps)-1)] - gaps[2:length(gaps)]
+          # names(gaps) <- gnames
+          # gaps   <- gaps[-length(gaps)]
+          # gaps   <- sort(gaps, decreasing = TRUE)
+
           idx_bot <- names(sort(diff_df[,nm] %n% diff_df$X, decreasing = TRUE))[n]
           idx_top <- top_df[top_df$X == idx_bot,nm]
           lfps <- c(fps_df[fps_df$X == idx_bot,nm], fps_df[fps_df$X == idx_top,nm])

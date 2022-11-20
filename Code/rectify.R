@@ -48,6 +48,10 @@
 #'     the reverse is just accounted for by a negative coefficient. However,
 #'     if an 'OR' relationship is present, there may well be a situation where
 #'     both the original feature and its reverse are needed to get a good fit.
+#' @param snap Snap to the unlimited min/max if the number of points outside the
+#'     range is less than this fraction (0.1% by default) of the total.  Set to
+#'     NULL to disable. This assumes that the small amount of data outside the
+#'     limits is not enough to disqualify a greater limit.
 #' @param cdata If fitting categorical data (i.e. integers without a continuous
 #'     relationship), set this character vector to the feature names of the
 #'     categorical columns.
@@ -59,7 +63,7 @@
 #' @export
 rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                     groups = NULL, dfilter = NULL, sdfilter = NULL,
-                    diffs = FALSE, ratios = FALSE, addrev = FALSE,
+                    diffs = FALSE, ratios = FALSE, addrev = FALSE, snap = 0.001,
                     cdata = NULL, verbose = FALSE, ilcats = NULL, reti = FALSE) {
 
     # ensuring the input data is just a generic data frame
@@ -189,7 +193,7 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
                 # find out what the limits are and calculate a new response
                 # as if this feature were the only relevant one
                 p <- presp(measurement = as.numeric(data.frame(data)[,ts]),
-                           sdfilter = sdfilter, dfilter = dfilter,
+                           sdfilter = sdfilter, dfilter = dfilter, snap = snap,
                            response = as.logical(data.frame(data)[,resp]))
                 # record the new limits
                 lim[[ts]] <- p$limits
@@ -277,7 +281,7 @@ rectify <- function(data, resp = "INDC", exclude = "X", limits = NULL,
 #' @return A rectified version of the input data set and associated feature
 #'     ranges.
 presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
-                  sdfilter = 3, dfilter = NULL) {
+                  sdfilter = 3, dfilter = NULL, snap = NULL) {
 
     # ensuring that "measurement" and "response" are vectors
     if (!is.null(response))
@@ -328,7 +332,11 @@ presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
           }
           else {
             rmin  <- min(rdata)
+            if (sum(measurement < rmin) < floor(snap*length(measurement)))
+              rmin <- NA
             rmax  <- max(rdata)
+            if (sum(measurement > rmax) < floor(snap*length(measurement)))
+              rmax <- NA
           }
         }
         else {
@@ -343,6 +351,13 @@ presp <- function(measurement, response = NULL, rmax = NULL, rmin = NULL,
     if (!any(is.na(c(rmin,rmax)))) {
       if (rmin != rmax)
         retrn[(measurement >= rmin) & (measurement <= rmax)] <- 1
+    }
+    else {
+      # an NA as rmin or rmax just means unbounded in that direction
+      if ((is.na(rmin)) & (!is.na(rmax))) retrn[measurement <= rmax] <- 1
+      else                                retrn[measurement >= rmin] <- 1
+      
+      
     }
 
     return(list(vector = retrn, limits = c(rmin, rmax)))
