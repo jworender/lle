@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case IV"
 author: "Jason Orender"
-date: "2022-10-29"
+date: "2022-11-23"
 output: 
   html_document: 
     keep_md: yes
@@ -44,7 +44,7 @@ change this, edit the "build_case_4_data.R" file. In order for this markdown to
 work correctly as written, the relevant curves would need to remain the same,
 but as many non-relevant curves as is desired can be added or subtracted without changing the details of the code.
 
-![](Case_4_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-5.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-6.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-7.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-8.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-9.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-10.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-11.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-12.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-13.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-14.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-15.png)<!-- -->
+![](Case_4_markdown_files/figure-html/generate_data-1.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-2.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-3.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-4.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-5.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-6.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-7.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-8.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-9.png)<!-- -->![](Case_4_markdown_files/figure-html/generate_data-10.png)<!-- -->
 
 ## The data generation process
 
@@ -171,6 +171,41 @@ distinctive pattern shown in the following plots.
 ```
 
 ```
+## Loading required package: gglasso
+```
+
+```
+## Warning: package 'gglasso' was built under R version 4.2.1
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## Warning: package 'randomForest' was built under R version 4.2.1
+```
+
+```
+## randomForest 4.7-1.1
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+```
 ## Loading required package: openssl
 ```
 
@@ -206,6 +241,12 @@ critical ranges and then fitting the new larger (sized two times plus) data set.
 ```
 ## 
 ## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     combine
 ```
 
 ```
@@ -257,46 +298,12 @@ set again until there are no more false-positive results.
 ```
 
 ```
-## 
-##   Running model through
-```
-
-```
-## 1 2 3 4
-```
-
-```
-## times
-##       +
-```
-
-```
-## 1 2 3
-```
-
-```
-## Nothing to do.
-```
-
-```
-##  times throught the devset
-##       +
-```
-
-```
-## 1 2 3
-```
-
-```
-## Nothing to do.
-```
-
-```
-## more times through the training set.
-```
-
-```
 ##   Done.
+```
+It takes two iterations for this data set to make use of all of the false positive data to clip the critical ranges because the large number of irrelevant variables generates a correspondingly large set of noisy data.  This noisy data makes it much more difficult to distinguish false positive values that are due to coincidental correlations in the irrelevant data and false positive values that are due to multiple independent causes for the same event. To determine the optimal number of zones or combinations of iterations, use the devset as a guide.  When that performance is optimized, the best assumption is that the test set (or real world performance) will be at optimum.
+
+```r
+model_1a <- collapse_limits(model_1a, nzones = 3)
 ```
 
 It is clear from the performance of the new models trained with extra versions
@@ -317,12 +324,86 @@ set can independently cause the same result is evident.
 ![](Case_4_markdown_files/figure-html/transformed_data_barplot_ev-1.png)<!-- -->
 
 Unlike case 3, this set of coefficients is considerably noisier.  It is worth
-pointing out that the truly relevant features and time steps *are* indicated,
-but at least half are indistinguishable from the noise at this point. The
-success of this method hinges on whether there is enough information to
-accurately define the true critical ranges of the features present, and each
-additional set of non-relevant data causes this burden to incrementally rise.
-As more data is analyzed, however, the more clear the result will become,
-allowing a steady removal of non-relevant features, until only the relevant ones
-are left.
+pointing out that three of the relevant features and time steps *are* indicated,
+but only one is distinguishable from the noise at this point. The success of
+this method hinges on whether there is enough information to accurately define
+the true critical ranges of the features present, and each additional set of
+non-relevant data causes this burden to incrementally rise. As more data is
+analyzed, however, the more clear the result will become, allowing a steady
+removal of non-relevant features, until only the relevant ones are left.  The
+improvements in model performance seem to be evident before any additional
+clarity in the analysis of coefficient magnitudes is seen.
+
+
+```r
+# LS just means LASSO
+model_3 <- modelfit(data = dset_train, fit_type = "RF", groups = dset_groups)
+message("  Done.")
+```
+
+```
+##   Done.
+```
+
+```r
+plot(model_3, title = "Case #4 Training Set (Random Forest)",
+     data = dset_train, h = 0.5, cx = hpos)
+```
+
+![](Case_4_markdown_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+plot(model_3, title = "Case #4 Test Set (Random Forest)",
+     data = dset_test, h = 0.5, cx = hpos)
+```
+
+![](Case_4_markdown_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+
+```r
+TRANS   <- 0.2
+BARHT   <- 0.02
+beta3   <- model_3$model$importance[,"%IncMSE"]
+markers <- rep(0,length(beta3))
+cols    <- rep(rgb(0,0,0,0), length(beta3))
+
+cols[grep("V1TM5", names(beta3))]      <- rgb(1.0, 0.0, 0.0,TRANS) #RED
+markers[grep("V1TM5", names(beta3))]   <- BARHT
+cols[grep("V2TM10", names(beta3))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
+markers[grep("V2TM10", names(beta3))]  <- BARHT
+cols[grep("V4TM3", names(beta3))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V4TM3", names(beta3))]   <- BARHT
+cols[grep("V5TM8", names(beta3))]      <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
+markers[grep("V5TM8", names(beta3))]   <- BARHT
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta3, border = "blue", col = "blue", ylim = c(-0.01, BARHT), las = 2,
+        xaxt = "n")
+
+par(new=TRUE)
+bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.01, BARHT),
+                 axes = FALSE)
+cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
+bplot_at <- NULL
+labs     <- NULL
+for (i in 1:length(cnames)) {
+  labs <- c(labs, names(beta3)[grep(cnames[i],names(beta3))])
+  bplot_at <- c(bplot_at,grep(cnames[i],names(beta3)))
+}
+bplot_labels <- rep(NA, length(beta3))
+bplot_labels[bplot_at] <- labs
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+```
+
+![](Case_4_markdown_files/figure-html/unnamed-chunk-3-3.png)<!-- -->
+
+
+In this particular case, the Random Forest method did well but it still under-
+performed the LASSO on the transformed data set after the critical ranges are
+clipped with the false positive data.  In general, the Random Forest method will
+do well on problems like this, in many cases marginally out-performing the LASSO
+on the transformed data set, but the LASSO will perform on-par after the
+critical ranges are clipped with the false positive data.  Additionally, the
+LASSO used in this way is considerably less computationally intensive and may
+serve better for data sets with large numbers of features.
+
 

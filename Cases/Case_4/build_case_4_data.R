@@ -11,12 +11,12 @@ library(dplyr)
 
 
 N          <- 100  # the number of RANDOM variables to generate
-S          <- 15   # the number of superposed variables to generate
+S          <- 10   # the number of superposed variables to generate
               # relevant variables vector (length must be smaller than "S" - not 5)
 R          <- c(1, 2, 4, 5)  
               # whether the high & above or low & below or in-between thresholds
 #               area is used
-AB         <- c('a', 'a', 'n', 'n')
+AB         <- c('a', 'a', 'b', 'b')
               # each group will be elements of an "or" clause, whereas each
 #               element within the group will be considered an "and" clause
 #               (the groups must be sequentially numbered from one)
@@ -24,13 +24,13 @@ gp         <- c(1, 1, 2, 2)
 n          <- 40   # setting the number of cycles to generate
 H          <- 10   # number of historical time steps to use for prediction
 rseed      <- 1234 # the random seed for repeatability
-train_fr   <- 0.5  # the fraction of the dataset used for the training portion of the data
+train_fr   <- 0.7  # the fraction of the dataset used for the training portion of the data
               # the time displacements for the variables
-disp       <- c(5, 10, 0, 3, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0)
-thresh_a   <- .5    # threshold above which the result contributes to a TRUE
+disp       <- c(5, 10, 0, 3, 8, 0, 0, 0, 0, 0)#, 0, 0, 0, 0, 0, 0, 0, 0,
+#                0, 0, 0, 0, 0, 0, 0)
+thresh_a   <- .6    # threshold above which the result contributes to a TRUE
 #                    example for 'a' curves
-thresh_b   <- .7   # threshold below which the result contributes to a TRUE
+thresh_b   <- .5   # threshold below which the result contributes to a TRUE
 #                    example for 'b' curves
                    # (as a fraction of the max)
                    # NOTE:  For the narrow range 'n', results that lie within

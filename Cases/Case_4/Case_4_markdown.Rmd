@@ -1,7 +1,7 @@
 ---
 title: "LLE: Case IV"
 author: "Jason Orender"
-date: "2022-10-29"
+date: "2022-11-23"
 output: 
   html_document: 
     keep_md: yes
@@ -239,7 +239,7 @@ axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 ```
 
 ```{r untransformed_data_barplot, echo=FALSE}
-BARHT   <- 2
+BARHT   <- 12
 beta2   <- model_2$model$beta[,]
 markers <- rep(0,length(beta2))
 cols    <- rep(rgb(0,0,0,0), length(beta2))
@@ -284,24 +284,13 @@ set again until there are no more false-positive results.
 
 ```{r fit_models_ev, echo=FALSE}
 message("Fitting a new model with additional feature versions that *might* exist...")
-model_1a <- model_1
-cat("\n  Running model through ")
-for (i in 1:4) {
-  cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, nzones = 4)
-}
-cat("times\n      + ")
-for (i in 1:3) {
-  cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, devset = dset_dev, nzones = 4)
-}
-cat(" times throught the devset\n      + ")
-for (i in 1:3) {
-  cat(paste0(i," "))
-  model_1a <- collapse_limits(model_1a, nzones = 4)
-}
-cat("more times through the training set.\n\n")
+
+model_1a <- collapse_limits(model_1, nzones = 0)
 message("  Done.")
+```
+It takes two iterations for this data set to make use of all of the false positive data to clip the critical ranges because the large number of irrelevant variables generates a correspondingly large set of noisy data.  This noisy data makes it much more difficult to distinguish false positive values that are due to coincidental correlations in the irrelevant data and false positive values that are due to multiple independent causes for the same event. To determine the optimal number of zones or combinations of iterations, use the devset as a guide.  When that performance is optimized, the best assumption is that the test set (or real world performance) will be at optimum.
+```{r}
+model_1a <- collapse_limits(model_1a, nzones = 3)
 ```
 
 It is clear from the performance of the new models trained with extra versions
@@ -329,47 +318,104 @@ set can independently cause the same result is evident.
 
 ```{r transformed_data_barplot_ev, echo=FALSE}
 TRANS   <- 0.2
-BARHT   <- 15
-beta1   <- model_1a$model$beta[,]
-markers <- rep(0,length(beta1))
-cols    <- rep(rgb(0,0,0,0), length(beta1))
+BARHT   <- 25
+beta1a   <- model_1a$model$beta[,]
+markers <- rep(0,length(beta1a))
+cols    <- rep(rgb(0,0,0,0), length(beta1a))
 
-cols[grep("V1TM5", names(beta1))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
-markers[grep("V1TM5", names(beta1))]  <- BARHT
-cols[grep("V2TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V2TM10", names(beta1))]  <- BARHT
-cols[grep("V4TM3", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V4TM3", names(beta1))]   <- BARHT
-cols[grep("V5TM8", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
-markers[grep("V5TM8", names(beta1))]  <- BARHT
+cols[grep("V1TM5", names(beta1a))]      <- rgb(1.0, 0.0, 0.0,TRANS) #RED
+markers[grep("V1TM5", names(beta1a))]   <- BARHT
+cols[grep("V2TM10", names(beta1a))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
+markers[grep("V2TM10", names(beta1a))]  <- BARHT
+cols[grep("V4TM3", names(beta1a))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V4TM3", names(beta1a))]   <- BARHT
+cols[grep("V5TM8", names(beta1a))]      <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
+markers[grep("V5TM8", names(beta1a))]   <- BARHT
 
 par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", ylim = c(-0.5, BARHT), las = 2,
+barplot(beta1a, border = "blue", col = "blue", ylim = c(-10, 25), las = 2,
         xaxt = "n")
 
 par(new=TRUE)
-bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.5, BARHT),
+bplot <- barplot(markers, border = cols, col = cols, ylim = c(-10, 25),
                  axes = FALSE)
 cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
 bplot_at <- NULL
 labs     <- NULL
 for (i in 1:length(cnames)) {
-  labs <- c(labs, names(beta1)[grep(cnames[i],names(beta1))])
-  bplot_at <- c(bplot_at,grep(cnames[i],names(beta1)))
+  labs <- c(labs, names(beta1a)[grep(cnames[i],names(beta1a))])
+  bplot_at <- c(bplot_at,grep(cnames[i],names(beta1a)))
 }
-bplot_labels <- rep(NA, length(beta1))
+bplot_labels <- rep(NA, length(beta1a))
 bplot_labels[bplot_at] <- labs
 axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 ```
 
 Unlike case 3, this set of coefficients is considerably noisier.  It is worth
-pointing out that the truly relevant features and time steps *are* indicated,
-but at least half are indistinguishable from the noise at this point. The
-success of this method hinges on whether there is enough information to
-accurately define the true critical ranges of the features present, and each
-additional set of non-relevant data causes this burden to incrementally rise.
-As more data is analyzed, however, the more clear the result will become,
-allowing a steady removal of non-relevant features, until only the relevant ones
-are left.  The improvements in model performance seem to significantly precede
-any additional clarity in the analysis of coefficient magnitudes.
+pointing out that three of the relevant features and time steps *are* indicated,
+but only one is distinguishable from the noise at this point. The success of
+this method hinges on whether there is enough information to accurately define
+the true critical ranges of the features present, and each additional set of
+non-relevant data causes this burden to incrementally rise. As more data is
+analyzed, however, the more clear the result will become, allowing a steady
+removal of non-relevant features, until only the relevant ones are left.  The
+improvements in model performance seem to be evident before any additional
+clarity in the analysis of coefficient magnitudes is seen.
+
+```{r}
+# LS just means LASSO
+model_3 <- modelfit(data = dset_train, fit_type = "RF", groups = dset_groups)
+message("  Done.")
+```
+```{r}
+plot(model_3, title = "Case #4 Training Set (Random Forest)",
+     data = dset_train, h = 0.5, cx = hpos)
+plot(model_3, title = "Case #4 Test Set (Random Forest)",
+     data = dset_test, h = 0.5, cx = hpos)
+
+
+TRANS   <- 0.2
+BARHT   <- 0.02
+beta3   <- model_3$model$importance[,"%IncMSE"]
+markers <- rep(0,length(beta3))
+cols    <- rep(rgb(0,0,0,0), length(beta3))
+
+cols[grep("V1TM5", names(beta3))]      <- rgb(1.0, 0.0, 0.0,TRANS) #RED
+markers[grep("V1TM5", names(beta3))]   <- BARHT
+cols[grep("V2TM10", names(beta3))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
+markers[grep("V2TM10", names(beta3))]  <- BARHT
+cols[grep("V4TM3", names(beta3))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V4TM3", names(beta3))]   <- BARHT
+cols[grep("V5TM8", names(beta3))]      <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
+markers[grep("V5TM8", names(beta3))]   <- BARHT
+
+par(new=FALSE, mar = c(6,3,3,2))
+barplot(beta3, border = "blue", col = "blue", ylim = c(-0.01, BARHT), las = 2,
+        xaxt = "n")
+
+par(new=TRUE)
+bplot <- barplot(markers, border = cols, col = cols, ylim = c(-0.01, BARHT),
+                 axes = FALSE)
+cnames <- c("V1TM5", "V2TM10", "V4TM3", "V5TM8")
+bplot_at <- NULL
+labs     <- NULL
+for (i in 1:length(cnames)) {
+  labs <- c(labs, names(beta3)[grep(cnames[i],names(beta3))])
+  bplot_at <- c(bplot_at,grep(cnames[i],names(beta3)))
+}
+bplot_labels <- rep(NA, length(beta3))
+bplot_labels[bplot_at] <- labs
+axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
+```
+
+
+In this particular case, the Random Forest method did well but it still under-
+performed the LASSO on the transformed data set after the critical ranges are
+clipped with the false positive data.  In general, the Random Forest method will
+do well on problems like this, in many cases marginally out-performing the LASSO
+on the transformed data set, but the LASSO will perform on-par after the
+critical ranges are clipped with the false positive data.  Additionally, the
+LASSO used in this way is considerably less computationally intensive and may
+serve better for data sets with large numbers of features.
+
 
