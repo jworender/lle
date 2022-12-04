@@ -12,18 +12,18 @@
 #'     beginning of the process for the purpose of refining the model at the
 #'     end) instead of the training set to refine the model.
 #' @param thresh The threshold at which to evaluate the outcome at.
-#' @param nzones The maximum number of zones to assume.  Each zone is an
-#'     additional multiplier for the number of columns.  For one zone, the
-#'     number of columns will double, for two zones, it will triple, and so on.
-#'     Four should probably be the minimum since two of the zones may simply be
-#'     due to extreme outliers on the top or the bottom.  Setting "nzones" to
-#'     zero will prompt use of a simple method without zones.
+#' @param nzones The maximum number of zones to assume.  One zone is equivalent
+#'     to the original range, greater than one zone shrinks the critical range
+#'     to the next higher density.  Choosing zero uses a simplified algorithm
+#'     which assumes that the region of false positives is sharply defined.
+#' @param zone The zone of nzones to select. Whether the choice is correct 
+#'     should be evident by the behavior of the training set.
 #' @param exclude The columns present in the data set to exclude from the
 #'     process.
 #' @return A new object which has collapsed boundaries.
 #' @export
-collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
-                            exclude = "X", snap = 0.001) {
+collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 2,
+                            zone = 1, exclude = "X", snap = 0.001) {
   
   if (is.null(devset)) {
     if (length(which(colnames(obj$data) %in% exclude)) > 0)
@@ -152,12 +152,14 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
         # the same number
         else if (nmin <= nt)                rg <- c(l[1], in_max)
         else if (nmax <= nt)                rg <- c(in_min, l[2])
-        # the remaining choices mean that the true positive region must lie
+        # the remaining possibility is that the true positive region must lie
         # somewhere in-between the bounds of the critical range, so finding the
-        # region containing the most true positives and no false positives
+        # region containing the most true positives and least false positives
         else {
           rmin <- l[1]
           rmax <- l[2]
+          # setting up the number of divisuions such that there are an average
+          # of 10 examples per bin
           NDIV <- ceiling(sum((data[,nm] >= l[1]) & (data[,nm] <= l[2]))/10)
           # demarcate the divisions
           divs <- seq(rmin, rmax, (rmax - rmin)/NDIV)
@@ -173,7 +175,7 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
           }))
           # normalize
           tfps  <- tfps/sum(resp)
-          # sum the differences between the accumulated false positives and
+          # take the difference between the accumulated false positives and
           # true positives
           diffs <- unlist(lapply(1:NDIV, FUN = function(i)
             sum((tfps-sfps)[1:i])))
@@ -183,8 +185,12 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
           f1b  <- max(data[which(diffs == min(diffs)),nm])
           f2a  <- min(data[which(diffs == max(diffs)),nm])
           f2b  <- max(data[which(diffs == max(diffs)),nm])
+          # if there are multiple points with the same value, choose the points
+          # such that the resultant range is the smallest
           if (f1a < f2a) rg <- c(f1b,f2a)
           else           rg <- c(f2b,f1a)
+          # if there are very few points between the range extremes and the edge
+          # of the data, make the range unbounded in that direction
           if (sum(data[,nm] < rg[1]) <= nt)  rg <- c(NA, in_min)
           if (sum(data[,nm] > rg[2]) <= nt)  rg <- c(in_max, NA)
         }
@@ -260,17 +266,27 @@ collapse_limits <- function(obj, devset=NULL, thresh = 0.5, nzones = 4,
           # names(gaps) <- gnames
           # gaps   <- gaps[-length(gaps)]
           # gaps   <- sort(gaps, decreasing = TRUE)
-
+          idx_zn1 <- names(sort(diff_df[,nm] %n% diff_df$X, decreasing = TRUE))[1]
           idx_bot <- names(sort(diff_df[,nm] %n% diff_df$X, decreasing = TRUE))[n]
           idx_top <- top_df[top_df$X == idx_bot,nm]
-          lfps <- c(fps_df[fps_df$X == idx_bot,nm], fps_df[fps_df$X == idx_top,nm])
+          lfps <- c(fps_df[fps_df$X == idx_zn1,nm], fps_df[fps_df$X == idx_top,nm])
           # now figure out the value of the first positive example within the zone
           tps <- sort(tps_df[,nm] %n% tps_df$X)
-          ltps <- c(tps[tps > lfps[1]][1],
-                    tps[tps < lfps[2]][sum(tps < lfps[2])])
+          if ((sum(tps > lfps[1]) > 0) & (sum(tps < lfps[2]) > 0))
+            ltps <- c(sort(tps[tps > lfps[1]])[1],
+                      sort(tps[tps < lfps[2]], decreasing = TRUE)[1])
+          else if (sum(tps > lfps[1]) > 0)
+            ltps <- c(sort(tps[tps > lfps[1]])[1], lfps[2])
+          else if (sum(tps < lfps[2]) > 0)
+            ltps <- c(lfps[1], sort(tps[tps < lfps[2]], decreasing = TRUE)[1])
           # take the middle ground so that the false positive will not be included
           # in the zone, but the true positive definitely will be
           lnew <- unname((lfps + ltps) / 2)
+          ntop <- sum(data[,nm] > lnew[2])
+          nbot <- sum(data[,nm] < lnew[1])
+          nmin <- dim(data)[1]*snap
+          if (ntop <= nmin) lnew[2] <- NA
+          if (nbot <= nmin) lnew[1] <- NA
           limits[[dict[nm]]][[nm]] <- lnew    
         }
       }
