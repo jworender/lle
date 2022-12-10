@@ -107,12 +107,18 @@ mod_sq0 <- modelfit(ds_train, groups = list(group1 = VARS), fit_type = "SQ",
 ```
 
 ```{r, echo=FALSE}
-plot(mod_rf0, data = ds_test, title = "Occupancy Test Data #1 (RF)")
-plot(mod_rf0, data = ds_test2, title = "Occupancy Test Data #2 (RF)")
-plot(mod_ls0, data = ds_test, title = "Occupancy Test Data #1 (LS)")
-plot(mod_ls0, data = ds_test2, title = "Occupancy Test Data #2 (LS)")
-plot(mod_sq0, data = ds_test, title = "Occupancy Test Data #1 (SQR)", cx = 0.6)
-plot(mod_sq0, data = ds_test2, title = "Occupancy Test Data #2 (SQR)", cx = 0.6)
+plot(mod_rf0, data = ds_test, title = "Occupancy Test Data #1 (RF)",
+     ylab = "Predicted Probability")
+plot(mod_rf0, data = ds_test2, title = "Occupancy Test Data #2 (RF)",
+     ylab = "Predicted Probability")
+plot(mod_ls0, data = ds_test, title = "Occupancy Test Data #1 (LS)",
+     ylab = "Predicted Probability")
+plot(mod_ls0, data = ds_test2, title = "Occupancy Test Data #2 (LS)",
+     ylab = "Predicted Probability")
+plot(mod_sq0, data = ds_test, title = "Occupancy Test Data #1 (SQR)", cx = 0.6,
+     ylab = "Predicted Probability")
+plot(mod_sq0, data = ds_test2, title = "Occupancy Test Data #2 (SQR)", cx = 0.6,
+     ylab = "Predicted Probability")
 
 beta0   <- mod_sq0$model$beta[,]
 markers <- rep(0,length(beta0))
@@ -211,8 +217,10 @@ if (TRUE) {
   ngroups[[1]] <- ngroups[[1]][ngroups[[1]] %in% names(betas)]
   ngroups[[2]] <- ngroups[[2]][ngroups[[2]] %in% names(betas)]
   mod_rf2 <- modelfit(ds_train1, groups = ngroups, fit_type = "RF")
-  plot(mod_rf2, data = ds_test1, title = "Random Forest with Selected Features (Test Set #1)")
-  plot(mod_rf2, data = ds_test2a, title = "Random Forest with Selected Features (Test Set #2)")
+  plot(mod_rf2, data = ds_test1, ylab = "Predicted Probability",
+       title = "Random Forest with Selected Features (Test Set #1)")
+  plot(mod_rf2, data = ds_test2a, ylab = "Predicted Probability",
+       title = "Random Forest with Selected Features (Test Set #2)")
 }
 ```
 
