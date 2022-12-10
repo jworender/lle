@@ -157,7 +157,7 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
-## ##------ Sat Nov 19 00:46:14 2022 ------##
+## ##------ Sat Dec 10 09:57:22 2022 ------##
 ```
 
 ```
@@ -220,11 +220,11 @@ The first case is a longitudinal data problem in which the following specific ch
 ```
 
 ```
-## ##------ Sat Nov 19 00:46:18 2022 ------##
+## ##------ Sat Dec 10 09:57:25 2022 ------##
 ```
 
 ```
-## ##------ Sat Nov 19 00:46:33 2022 ------##
+## ##------ Sat Dec 10 09:57:38 2022 ------##
 ```
 
 ```
@@ -324,7 +324,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:46:35 2022 ------##
+## ##------ Sat Dec 10 09:57:39 2022 ------##
 ```
 
 ```r
@@ -333,7 +333,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:48:12 2022 ------##
+## ##------ Sat Dec 10 09:59:04 2022 ------##
 ```
 
 ```r
@@ -354,14 +354,14 @@ message("Plotting un-transformed data examples...")
 
 ```r
 plot(model_rf, title = "Case #1 Training Set (Random Forest no transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 ```r
 plot(model_rf, title = "Case #1 Test Set (Random Forest no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
@@ -379,7 +379,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:48:13 2022 ------##
+## ##------ Sat Dec 10 09:59:04 2022 ------##
 ```
 
 ```r
@@ -391,7 +391,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:48:42 2022 ------##
+## ##------ Sat Dec 10 09:59:27 2022 ------##
 ```
 
 ```r
@@ -411,15 +411,15 @@ message("Plotting transformed data examples...")
 ```
 
 ```r
-plot(model_rf, title = "Case #1 Training Set (Random Forest with transformation)", h=.5,
-     cx = hpos)
+plot(model_rf, title = "Case #1 Training Set (Random Forest with transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ```r
 plot(model_rf, title = "Case #1 Test Set (Random Forest with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test_SQ$data, h=.5, cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
@@ -447,7 +447,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:48:43 2022 ------##
+## ##------ Sat Dec 10 09:59:28 2022 ------##
 ```
 
 ```r
@@ -456,7 +456,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:50:44 2022 ------##
+## ##------ Sat Dec 10 10:01:12 2022 ------##
 ```
 
 ```r
@@ -477,14 +477,14 @@ message("Plotting un-transformed data examples...")
 
 ```r
 plot(model_gl, title = "Case #1 Training Set (Group LASSO no transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
 plot(model_gl, title = "Case #1 Test Set (Group LASSO no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
@@ -494,7 +494,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:50:44 2022 ------##
+## ##------ Sat Dec 10 10:01:12 2022 ------##
 ```
 
 ```r
@@ -511,7 +511,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:50:44 2022 ------##
+## ##------ Sat Dec 10 10:01:12 2022 ------##
 ```
 
 ```r
@@ -524,7 +524,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:51:24 2022 ------##
+## ##------ Sat Dec 10 10:01:44 2022 ------##
 ```
 
 ```r
@@ -545,14 +545,14 @@ message("Plotting transformed data examples...")
 
 ```r
 plot(model_gl, title = "Case #1 Training Set (Group LASSO with transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 plot(model_gl, title = "Case #1 Test Set (Group LASSO with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test_SQ$data, h=.5, cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
@@ -583,7 +583,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:51:24 2022 ------##
+## ##------ Sat Dec 10 10:01:44 2022 ------##
 ```
 
 ```r
@@ -592,7 +592,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:51:39 2022 ------##
+## ##------ Sat Dec 10 10:01:57 2022 ------##
 ```
 
 ```r
@@ -612,15 +612,15 @@ message("Plotting un-transformed data examples...")
 ```
 
 ```r
-plot(model_rr, title = "Case #1 Training Set (Ridge Regression no transformation)", h=.5,
-     cx = hpos)
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression no transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ```r
 plot(model_rr, title = "Case #1 Test Set (Ridge Regression no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     data = dset_test, h=.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
@@ -638,7 +638,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:51:39 2022 ------##
+## ##------ Sat Dec 10 10:01:57 2022 ------##
 ```
 
 ```r
@@ -650,7 +650,7 @@ timestamp()
 ```
 
 ```
-## ##------ Sat Nov 19 00:51:42 2022 ------##
+## ##------ Sat Dec 10 10:01:59 2022 ------##
 ```
 
 ```r
@@ -670,15 +670,15 @@ message("Plotting transformed data examples...")
 ```
 
 ```r
-plot(model_rr, title = "Case #1 Training Set (Ridge Regression with transformation)", h=.5,
-     cx = hpos)
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression with transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 plot(model_rr, title = "Case #1 Test Set (Ridge Regression with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     data = dset_test_SQ$data, h=.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 ![](Case_1_markdown_files/figure-html/unnamed-chunk-6-2.png)<!-- -->

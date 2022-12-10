@@ -164,18 +164,17 @@ axis(1, at = bplot, labels =bplot_labels, las=2, cex.axis=0.7, tick=FALSE)
 
 
 Note that while the true negative numbers were slightly less for the LASSO on
-transformed data (SQR), the true positive numbers were 100.0% for both test sets.
-Under certain circumstances this would be a superior result if the cost were
-higher to miss an occupied office than to falsely presume that an unoccupied
-office is occupied (for after hours surveillance, for instance). The returns are
-also much more definitive than either the random forest or LASSO on un-
-Transformed data solutions.
+transformed data (SQR), the true positive numbers were 100.0% for both test sets
+using the transformed data. Under certain circumstances this would be a superior
+result if the cost were higher to miss an occupied office than to falsely
+presume that an unoccupied office is occupied (for after hours surveillance, for instance). The returns are also much more definitive than either the random
+forest or LASSO on un-Transformed data solutions.
 
 The real value comes when investigating the feature selection, however.  The
 LASSO feature selection on the un-Transformed data seems to consist almost
 entirely of the temperature sensor returns.  While there is some merit to using
 this feature, the less accurate returns and more ambiguous transition from
-negative to positive examples signal that this is not a very good selection.
+negative to positive examples signal that this is not a perfect solution.
 The selection made by the LASSO on the transformed data seems to not only work
 better, it makes some intuitive sense.  Saturdays and Sundays and excluded
 (large negative coefficients) and the light and CO2 sensors are utilized almost

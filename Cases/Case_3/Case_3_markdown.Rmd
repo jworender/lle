@@ -194,8 +194,10 @@ new larger (about 2 x size) data set.
 ```{r transformed_data_plots, echo=FALSE}
 hpos <- 0.4
 message("Plotting transformed data examples...")
-plot(model_1, title = "Case #3 Training Set", h=.5, cx = hpos)
-plot(model_1, title = "Case #3 Test Set", data = dset_test, h=.5, cx = hpos)
+plot(model_1, title = "Case #3 Training Set", h=.5, cx = hpos,
+     ylab = "Predicted Probability")
+plot(model_1, title = "Case #3 Test Set", data = dset_test, h=.5, cx = hpos,
+     ylab = "Predicted Probability")
 message("  Done.")
 ```
 
@@ -205,9 +207,9 @@ outperforms the transformed data.
 ```{r untransformed_data_plots, echo=FALSE}
 message("Plotting un-transformed data examples...")
 plot(model_2, title = "Case #3 Training Set (no transformation)", h=.5,
-     cx = hpos)
+     cx = hpos, ylab = "Predicted Probability")
 plot(model_2, title = "Case #3 Test Set (no transformation)",
-     data = dset_test, h=.5, cx = .35,cy=.4)
+     data = dset_test, h=.5, cx = .35, cy=.4, ylab = "Predicted Probability")
 message("  Done.")
 ```
 
@@ -285,7 +287,6 @@ the extra versions calculated.
 ```{r fit_models_ev, echo=FALSE}
 message("Fitting a new model with additional feature versions that *might* exist...")
 model_1a <- collapse_limits(model_1, nzones = 0)
-model_1a <- collapse_limits(model_1a, nzones = 0)
 message("  Done.")
 ```
 
@@ -299,9 +300,9 @@ profound.
 ```{r transformed_data_plots_ev, echo=FALSE}
 hpos <- 0.4
 plot(model_1a, title = "Case #3 Training Set (with extra versions)", h = 0.5,
-     cx = hpos)
+     cx = hpos, ylab = "Predicted Probability")
 plot(model_1a, title = "Case #3 Test Set (with extra versions)",
-     data = dset_test, h = 0.5, cx = hpos)
+     data = dset_test, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 The LASSO results with the unmodified continuous data shown above indicate that
@@ -318,10 +319,10 @@ cols    <- rep(rgb(0,0,0,0), length(beta1))
 
 cols[grep("V1TM5", names(beta1))]     <- rgb(1.0, 0.0, 0.0,TRANS) #RED
 markers[grep("V1TM5", names(beta1))]  <- BARHT
-cols[grep("V2TM10", names(beta1))]     <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
-markers[grep("V2TM10", names(beta1))]  <- BARHT
-cols[grep("V4TM3", names(beta1))]      <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
-markers[grep("V4TM3", names(beta1))]   <- BARHT
+cols[grep("V2TM10", names(beta1))]    <- rgb(0.5, 0.0, 0.5,TRANS) #PURPLE
+markers[grep("V2TM10", names(beta1))] <- BARHT
+cols[grep("V4TM3", names(beta1))]     <- rgb(0.0, 1.0, 0.0,TRANS) #GREEN
+markers[grep("V4TM3", names(beta1))]  <- BARHT
 cols[grep("V5TM8", names(beta1))]     <- rgb(1.0, 0.5, 0.0,TRANS) #ORANGE
 markers[grep("V5TM8", names(beta1))]  <- BARHT
 

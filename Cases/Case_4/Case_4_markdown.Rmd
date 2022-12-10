@@ -189,8 +189,10 @@ critical ranges and then fitting the new larger (sized two times plus) data set.
 ```{r transformed_data_plots, echo=FALSE}
 hpos <- 0.4
 message("Plotting transformed data examples...")
-plot(model_1, title = "Case #4 Training Set", h=.5, cx = hpos)
-plot(model_1, title = "Case #4 Test Set", data = dset_test, h=.5, cx = hpos)
+plot(model_1, title = "Case #4 Training Set", h=.5, cx = hpos,
+     ylab = "Predicted Probability")
+plot(model_1, title = "Case #4 Test Set", data = dset_test, h=.5, cx = hpos,
+     ylab = "Predicted Probability")
 message("  Done.")
 ```
 
@@ -200,9 +202,9 @@ outperforms the transformed data, but not by much.
 ```{r untransformed_data_plots, echo=FALSE}
 message("Plotting un-transformed data examples...")
 plot(model_2, title = "Case #4 Training Set (no transformation)", h=.5,
-     cx = hpos)
+     cx = hpos, ylab = "Predicted Probability")
 plot(model_2, title = "Case #4 Test Set (no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     data = dset_test, h=.5, cx = hpos, ylab = "Predicted Probability")
 message("  Done.")
 ```
 
@@ -306,9 +308,9 @@ hpos <- 0.4
 plot(model_1a, title = "Case #4 Training Set (with extra versions)", h = 0.5,
      cx = hpos)
 plot(model_1a, title = "Case #4 Dev Set (with extra versions)", h = 0.5,
-     cx = hpos, data = dset_dev)
+     cx = hpos, data = dset_dev, ylab = "Predicted Probability")
 plot(model_1a, title = "Case #4 Test Set (with extra versions)",
-     data = dset_test, h = 0.5, cx = hpos)
+     data = dset_test, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 The LASSO results with the unmodified continuous data shown above indicate that
@@ -369,9 +371,9 @@ message("  Done.")
 ```
 ```{r}
 plot(model_3, title = "Case #4 Training Set (Random Forest)",
-     data = dset_train, h = 0.5, cx = hpos)
+     data = dset_train, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 plot(model_3, title = "Case #4 Test Set (Random Forest)",
-     data = dset_test, h = 0.5, cx = hpos)
+     data = dset_test, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 
 
 TRANS   <- 0.2

@@ -347,14 +347,14 @@ message("  Done.")
 
 ```r
 plot(model_3, title = "Case #4 Training Set (Random Forest)",
-     data = dset_train, h = 0.5, cx = hpos)
+     data = dset_train, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 ![](Case_4_markdown_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
 plot(model_3, title = "Case #4 Test Set (Random Forest)",
-     data = dset_test, h = 0.5, cx = hpos)
+     data = dset_test, h = 0.5, cx = hpos, ylab = "Predicted Probability")
 ```
 
 ![](Case_4_markdown_files/figure-html/unnamed-chunk-3-2.png)<!-- -->

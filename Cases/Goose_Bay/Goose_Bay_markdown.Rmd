@@ -135,16 +135,18 @@ overfitting.
 ```{r transformed_data_plots, echo=FALSE}
 hpos <- 0.6
 plot(ion_sq_fit, title = "Goose Bay Training Set (transformed data)", h=.5,
-     cx = hpos)
+     cx = hpos, ylab = "Predicted Probability")
 plot(ion_sq_fit, data = ion_test, h=.5, cx = hpos, cy = .4,
-     title = "Goose Bay Testing Set (transformed data)")
+     title = "Goose Bay Testing Set (transformed data)",
+     ylab = "Predicted Probability")
 ```
 
 ```{r untransformed_data_plots, echo=FALSE}
 plot(ion_ls_fit, title = "Goose Bay Training Set (un-transformed data)", h=.5,
-     cx = hpos)
+     cx = hpos, ylab = "Predicted Probability")
 plot(ion_ls_fit, data = ion_test, h=.5, cx = hpos,
-     title = "Goose Bay Testing Set (un-transformed data)")
+     title = "Goose Bay Testing Set (un-transformed data)",
+     ylab = "Predicted Probability")
 ```
 
 Additionally, a sparse coefficient vector was returned (shown below), which
@@ -159,10 +161,10 @@ beta1   <- beta1[sort(names(beta1))]
 markers <- rep(0,length(beta1))
 
 par(new=FALSE, mar = c(6,3,3,2))
-barplot(beta1, border = "blue", col = "blue", las = 2, xaxt = "n")
+barplot(beta1, border = "blue", col = "blue", las = 2, xaxt = "n", ylim = c(0,5))
 par(new=TRUE)
 bplot <- barplot(markers, border = "blue", col = "blue",
-                 yaxt = "n", las=2,
+                 yaxt = "n", las=2, ylim = c(0,5),
                  main = "Coefficients from Transformed Data")
 cnames <- c("Pulse_2_r", "Pulse_3_r", "Pulse_2_i", "Pulse_3_i", "Pulse_4_i",
             "Pulse_7_i", "Pulse_9_i")

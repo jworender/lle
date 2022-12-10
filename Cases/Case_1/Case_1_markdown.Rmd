@@ -181,8 +181,10 @@ into a binary format using the previous procedure.
 ```{r transformed_data_plots, echo=FALSE}
 hpos <- 0.4
 message("Plotting transformed data examples...")
-plot(model_1, title = "Case #1 Training Set", h=.5, cx = hpos)
-plot(model_1, title = "Case #1 Test Set", data = dset_test, h=.5, cx = hpos)
+plot(model_1, title = "Case #1 Training Set", h=.5, cx = hpos,
+     ylab = "Predicted Probability")
+plot(model_1, title = "Case #1 Test Set", data = dset_test, h=.5, cx = hpos,
+     ylab = "Predicted Probability")
 message("  Done.")
 ```
 
@@ -201,9 +203,9 @@ performance computing (HPC) setting.
 ```{r untransformed_data_plots, echo=FALSE}
 message("Plotting un-transformed data examples...")
 plot(model_2, title = "Case #1 Training Set (LASSO no transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_2, title = "Case #1 Test Set (LASSO no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 message("  Done.")
 ```
 The reason that LASSO was chosen for the discrimination algorithm is that it by
@@ -235,9 +237,9 @@ timestamp()
 message("  Done.")
 message("Plotting un-transformed data examples...")
 plot(model_rf, title = "Case #1 Training Set (Random Forest no transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_rf, title = "Case #1 Test Set (Random Forest no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 message("  Done.")
 ```
 ```{r}
@@ -249,10 +251,10 @@ model_rf <- modelfit(data = dset_train_SQ$data, fit_type = "RF", groups = dset_g
 timestamp()
 message("  Done.")
 message("Plotting transformed data examples...")
-plot(model_rf, title = "Case #1 Training Set (Random Forest with transformation)", h=.5,
-     cx = hpos)
+plot(model_rf, title = "Case #1 Training Set (Random Forest with transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 plot(model_rf, title = "Case #1 Test Set (Random Forest with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test_SQ$data, h=.5, cx = hpos)
 
 ```
 As mentioned in the paper, the group lasso was also intended to fit categorical
@@ -273,9 +275,9 @@ timestamp()
 message("  Done.")
 message("Plotting un-transformed data examples...")
 plot(model_gl, title = "Case #1 Training Set (Group LASSO no transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_gl, title = "Case #1 Test Set (Group LASSO no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 timestamp()
 message("  Done.")
 ```
@@ -291,9 +293,9 @@ timestamp()
 message("  Done.")
 message("Plotting transformed data examples...")
 plot(model_gl, title = "Case #1 Training Set (Group LASSO with transformation)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_gl, title = "Case #1 Test Set (Group LASSO with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test_SQ$data, h=.5, cx = hpos)
 
 ```
 
@@ -316,10 +318,10 @@ model_rr <- modelfit(data = dset_train, fit_type = "RR", groups = dset_groups)
 timestamp()
 message("  Done.")
 message("Plotting un-transformed data examples...")
-plot(model_rr, title = "Case #1 Training Set (Ridge Regression no transformation)", h=.5,
-     cx = hpos)
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression no transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 plot(model_rr, title = "Case #1 Test Set (Ridge Regression no transformation)",
-     data = dset_test, h=.5, cx = hpos)
+     data = dset_test, h=.5, cx = hpos, ylab = "Predicted Probability")
 message("  Done.")
 ```
 ```{r}
@@ -331,10 +333,10 @@ model_rr <- modelfit(data = dset_train_SQ$data, fit_type = "RR", groups = dset_g
 timestamp()
 message("  Done.")
 message("Plotting transformed data examples...")
-plot(model_rr, title = "Case #1 Training Set (Ridge Regression with transformation)", h=.5,
-     cx = hpos)
+plot(model_rr, title = "Case #1 Training Set (Ridge Regression with transformation)",
+     h=.5, ylab = "Predicted Probability", cx = hpos)
 plot(model_rr, title = "Case #1 Test Set (Ridge Regression with transformation)",
-     data = dset_test_SQ$data, h=.5, cx = hpos)
+     data = dset_test_SQ$data, h=.5, cx = hpos, ylab = "Predicted Probability")
 
 ```
 

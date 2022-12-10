@@ -192,17 +192,19 @@ training set, there is a considerably greater effect.
 ```{r transformed_data_m5_plots, echo=FALSE}
 hpos <- 0.4
 message("Plotting transformed data examples...")
-plot(model_1_m5, title = "Case #2 (minus curve #5) Training Set", h=.5, cx = hpos)
-plot(model_1_m5, title = "Case #2 (minus curve #5) Test Set", data = dset_m5_test, h=.5, cx = hpos)
+plot(model_1_m5, title = "Case #2 (minus curve #5) Training Set", h=.5, cx = hpos,
+     ylab = "Predicted Probability")
+plot(model_1_m5, title = "Case #2 (minus curve #5) Test Set", data = dset_m5_test,
+     ylab = "Predicted Probability", h=.5, cx = hpos)
 message("  Done.")
 ```
 
 ```{r untransformed_data_m5_plots, echo=FALSE}
 message("Plotting un-transformed data examples...")
 plot(model_2_m5, title = "Case #2 Training Set (no transform, minus #5)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_2_m5, title = "Case #2 Test Set (no transform, minus #5)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 message("  Done.")
 ```
 
@@ -288,9 +290,9 @@ variables and time steps are the most relevant.
 hpos <- 0.4
 message("Plotting transformed data examples...")
 plot(model_1_m510, title = "Case #2 (minus curve #5/10) Training Set", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_1_m510, title = "Case #2 (minus curve #5/10) Test Set",
-     data = dset_m510_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_m510_test, h=.5, cx = hpos)
 message("  Done.")
 ```
 
@@ -301,9 +303,9 @@ variables and time steps are the most relevant.
 ```{r untransformed_data_m510_plots, echo=FALSE}
 message("Plotting un-transformed data examples...")
 plot(model_2_m510, title = "Case #2 Training Set (no transform, minus #5/10)", h=.5,
-     cx = hpos)
+     ylab = "Predicted Probability", cx = hpos)
 plot(model_2_m510, title = "Case #2 Test Set (no transform, minus #5/10)",
-     data = dset_test, h=.5, cx = hpos)
+     ylab = "Predicted Probability", data = dset_test, h=.5, cx = hpos)
 message("  Done.")
 ```
 
